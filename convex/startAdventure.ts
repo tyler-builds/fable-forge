@@ -22,6 +22,9 @@ function buildTurnPrompt(params: {
 - "requiresRoll" (boolean - true if this action needs a stat check)
 - "statToRoll" (string - "str", "dex", "con", "int", "wis", or "cha" if requiresRoll is true)
 - "rollDC" (number - difficulty class from 10-20 if requiresRoll is true, where 10=trivial, 15=moderate, 20=very hard)
+- "statAdjustment" (boolean - true if this action affects player stats like HP/MP)
+- "statToAdjust" (string - "hp", "mp", "str", "dex", "con", "int", "wis", or "cha" if statAdjustment is true)
+- "adjustmentAmount" (number - positive for gain, negative for loss if statAdjustment is true)
 - "proactiveEvent" (string or null - occasionally generate world events that require player decisions)
 - "eventOptions" (array of strings or null - if proactiveEvent is set, provide 2-4 choice options for the player)
 
@@ -32,6 +35,23 @@ Example: {
   "requiresRoll": true,
   "statToRoll": "str",
   "rollDC": 15,
+  "statAdjustment": false,
+  "statToAdjust": null,
+  "adjustmentAmount": 0,
+  "proactiveEvent": null,
+  "eventOptions": null
+}
+
+Example with spell: {
+  "outcome": "You cast a powerful fireball spell, scorching the enemies but draining your magical energy.",
+  "glossaryTerms": [],
+  "inventoryChanges": [],
+  "requiresRoll": false,
+  "statToRoll": null,
+  "rollDC": null,
+  "statAdjustment": true,
+  "statToAdjust": "mp",
+  "adjustmentAmount": -12,
   "proactiveEvent": null,
   "eventOptions": null
 }
@@ -42,6 +62,10 @@ Example with event: {
   "inventoryChanges": [{"name": "Wild Berries", "quantityChange": 3, "description": "Fresh forest berries"}],
   "requiresRoll": false,
   "statToRoll": null,
+  "rollDC": null,
+  "statAdjustment": false,
+  "statToAdjust": null,
+  "adjustmentAmount": 0,
   "proactiveEvent": "A hooded stranger approaches from the shadows, offering to trade rare herbs for your berries.",
   "eventOptions": ["Accept the trade", "Politely decline and walk away", "Ask what the herbs do first", "Draw your weapon defensively"]
 }`,
@@ -84,7 +108,16 @@ Create a proactiveEvent to make the world feel alive:
 When you create a proactiveEvent, ALWAYS provide eventOptions with 2-4 meaningful choices that let the player engage with the situation. Make choices distinct and interesting, not just "yes/no". Consider the player's class and stats when crafting options.` : ''}
 
 When appropriate, include inventory changes (items gained, lost, used, or discovered).
-Use negative quantityChange for items lost/used, positive for items gained.`
+Use negative quantityChange for items lost/used, positive for items gained.
+
+STAT ADJUSTMENTS: Set statAdjustment to true when actions affect player stats:
+- Spell casting: reduces MP (e.g., "mp", -10 for a fireball spell)
+- Taking damage: reduces HP (e.g., "hp", -8 from enemy attack)
+- Healing: restores HP (e.g., "hp", +15 from potion)
+- Rest/meditation: restores MP (e.g., "mp", +5 from short rest)
+- Permanent stat changes: from magical effects (e.g., "str", +1 from strength potion)
+
+Always mention the stat cost/effect in the outcome text (e.g., "This costs 12 MP" or "You take 5 damage").`
   };
 }
 
@@ -131,6 +164,9 @@ Respond with JSON containing:
 - "outcome" (the story result based on the roll)
 - "glossaryTerms" (array of {term, definition} objects for any new concepts)
 - "inventoryChanges" (array of {name, quantityChange, description?, reason?} objects for items gained/lost)
+- "statAdjustment" (boolean - true if this action affects player stats like HP/MP)
+- "statToAdjust" (string - "hp", "mp", "str", "dex", "con", "int", "wis", or "cha" if statAdjustment is true)
+- "adjustmentAmount" (number - positive for gain, negative for loss if statAdjustment is true)
 - "proactiveEvent" (string or null - occasionally generate world events that require player decisions)
 - "eventOptions" (array of strings or null - if proactiveEvent is set, provide 2-4 choice options for the player)
 
@@ -149,7 +185,16 @@ Stat Rolled: ${params.statRolled.toUpperCase()}
 Roll Result: ${params.rollResult}
 Success: ${params.success ? 'YES' : 'NO'}
 
-Generate the outcome based on this roll result. Keep responses concise but vivid (2-3 sentences max).`
+Generate the outcome based on this roll result. Keep responses concise but vivid (2-3 sentences max).
+
+STAT ADJUSTMENTS: Set statAdjustment to true when the action/outcome affects player stats:
+- Spell casting: reduces MP
+- Taking damage: reduces HP
+- Healing: restores HP
+- Rest/meditation: restores MP
+- Permanent stat changes: from magical effects
+
+Always mention the stat cost/effect in the outcome text.`
   };
 
   const completion = await openai.chat.completions.create({
@@ -178,6 +223,9 @@ Generate the outcome based on this roll result. Keep responses concise but vivid
       outcome: parsed.outcome || "The magical energies swirl unpredictably...",
       glossaryTerms: parsed.glossaryTerms || [],
       inventoryChanges: parsed.inventoryChanges || [],
+      statAdjustment: parsed.statAdjustment || false,
+      statToAdjust: parsed.statToAdjust || null,
+      adjustmentAmount: parsed.adjustmentAmount || 0,
       proactiveEvent: parsed.proactiveEvent || null,
       eventOptions: parsed.eventOptions || null
     };
@@ -187,6 +235,9 @@ Generate the outcome based on this roll result. Keep responses concise but vivid
       outcome: response,
       glossaryTerms: [],
       inventoryChanges: [],
+      statAdjustment: false,
+      statToAdjust: null,
+      adjustmentAmount: 0,
       proactiveEvent: null,
       eventOptions: null
     };
@@ -245,6 +296,9 @@ export const takeTurn = action(async (context, params: {
       requiresRoll: parsed.requiresRoll || false,
       statToRoll: parsed.statToRoll || null,
       rollDC: parsed.rollDC || 15,
+      statAdjustment: parsed.statAdjustment || false,
+      statToAdjust: parsed.statToAdjust || null,
+      adjustmentAmount: parsed.adjustmentAmount || 0,
       proactiveEvent: parsed.proactiveEvent || null,
       eventOptions: parsed.eventOptions || null
     };
@@ -257,6 +311,9 @@ export const takeTurn = action(async (context, params: {
       requiresRoll: false,
       statToRoll: null,
       rollDC: 15,
+      statAdjustment: false,
+      statToAdjust: null,
+      adjustmentAmount: 0,
       proactiveEvent: null,
       eventOptions: null
     };

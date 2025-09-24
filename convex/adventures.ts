@@ -285,6 +285,50 @@ export const updateAdventureStatus = mutation({
   },
 });
 
+export const updateAdventureStats = mutation({
+  args: {
+    adventureId: v.id("adventures"),
+    statToAdjust: v.union(
+      v.literal("hp"),
+      v.literal("mp"),
+      v.literal("str"),
+      v.literal("dex"),
+      v.literal("con"),
+      v.literal("int"),
+      v.literal("wis"),
+      v.literal("cha")
+    ),
+    adjustmentAmount: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    const adventure = await ctx.db.get(args.adventureId);
+    if (!adventure || adventure.userId !== user._id) {
+      throw new Error("Adventure not found or access denied");
+    }
+
+    const currentStats = { ...adventure.currentStats };
+    currentStats[args.statToAdjust] = Math.max(0, currentStats[args.statToAdjust] + args.adjustmentAmount);
+
+    // Cap HP and MP at their base values (don't allow overhealing beyond max)
+    if (args.statToAdjust === "hp") {
+      currentStats.hp = Math.min(currentStats.hp, adventure.characterStats.hp);
+    } else if (args.statToAdjust === "mp") {
+      currentStats.mp = Math.min(currentStats.mp, adventure.characterStats.mp);
+    }
+
+    await ctx.db.patch(args.adventureId, {
+      currentStats,
+    });
+
+    return currentStats;
+  },
+});
+
 export const deleteAdventure = mutation({
   args: {
     adventureId: v.id("adventures"),

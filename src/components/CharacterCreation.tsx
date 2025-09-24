@@ -55,12 +55,12 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="bg-gradient-to-b from-amber-50 to-orange-50 dark:from-slate-800 dark:to-slate-900 p-8 rounded-xl shadow-2xl max-w-lg w-full border-2 border-amber-200 dark:border-amber-800">
-        <h1 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
+      <div className="bg-gradient-to-b from-gray-800 to-slate-900 p-8 rounded-xl shadow-2xl max-w-lg w-full border border-gray-600">
+        <h1 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
           ⚔️ Fable Forge ⚔️
         </h1>
-        <p className="text-center mb-6 text-amber-800 dark:text-amber-200">
+        <p className="text-center mb-6 text-blue-300">
           Welcome, {currentUser?.email?.split("@")[0] || "Adventurer"}!
         </p>
 
@@ -68,14 +68,14 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
           <h2 className="text-xl font-bold">Character Creation</h2>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-amber-800 dark:text-amber-200">Choose your class:</label>
+            <label className="text-sm font-semibold text-blue-300">Choose your class:</label>
             <div className="flex gap-4">
               <button
                 type="button"
-                className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
                   selectedClass === "warrior"
                     ? "bg-gradient-to-r from-red-600 to-red-700 text-white border-red-500 shadow-lg"
-                    : "bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600 hover:bg-slate-300 dark:hover:bg-slate-600"
+                    : "bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"
                 }`}
                 onClick={() => setSelectedClass("warrior")}
               >
@@ -83,10 +83,10 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
               </button>
               <button
                 type="button"
-                className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                className={`px-4 py-2 rounded-lg border text-sm font-semibold transition-all ${
                   selectedClass === "mage"
                     ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white border-purple-500 shadow-lg"
-                    : "bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600 hover:bg-slate-300 dark:hover:bg-slate-600"
+                    : "bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600"
                 }`}
                 onClick={() => setSelectedClass("mage")}
               >
@@ -95,9 +95,9 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-amber-100 to-orange-100 dark:from-slate-700 dark:to-slate-800 p-4 rounded-lg border border-amber-200 dark:border-amber-700">
-            <p className="text-sm font-semibold mb-2">Stats:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-gradient-to-r from-gray-800 to-slate-800 p-4 rounded-lg border border-gray-600">
+            <p className="text-sm font-semibold mb-2 text-blue-300">Stats:</p>
+            <div className="grid grid-cols-2 gap-2 text-xs text-gray-200">
               <div>HP: {classes[selectedClass].hp}</div>
               <div>MP: {classes[selectedClass].mp}</div>
               <div>STR: {classes[selectedClass].str}</div>
@@ -112,7 +112,7 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
           <div className="flex gap-2">
             <button
               type="button"
-              className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold text-sm px-4 py-3 rounded-lg border-2 border-slate-300 dark:border-slate-600 transition-all"
+              className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold text-sm px-4 py-3 rounded-lg border border-gray-600 transition-all"
               onClick={onReturnToDashboard}
               disabled={isCreatingWorld}
             >
@@ -121,7 +121,7 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
 
             <button
               type="button"
-              className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold text-sm px-6 py-3 rounded-lg border-2 border-amber-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold text-sm px-6 py-3 rounded-lg border border-blue-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isCreatingWorld}
               onClick={handleCreateAdventure}
             >

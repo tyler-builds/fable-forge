@@ -32,6 +32,7 @@ function Content() {
   const addAction = useMutation(api.adventures.addAdventureAction);
   const updateInventory = useMutation(api.adventures.updateAdventureInventory);
   const updateGlossary = useMutation(api.adventures.updateAdventureGlossary);
+  const updateStats = useMutation(api.adventures.updateAdventureStats);
   const deleteAdventure = useMutation(api.adventures.deleteAdventure);
   const getAdventure = useQuery(
     api.adventures.getAdventure,
@@ -210,6 +211,14 @@ function Content() {
         inventoryChanges: finalResult.inventoryChanges
       });
     }
+
+    if (finalResult.statAdjustment && finalResult.statToAdjust && finalResult.adjustmentAmount !== 0) {
+      await updateStats({
+        adventureId: currentAdventureId,
+        statToAdjust: finalResult.statToAdjust,
+        adjustmentAmount: finalResult.adjustmentAmount
+      });
+    }
   };
 
   const handleTakeTurn = async () => {
@@ -247,11 +256,11 @@ function Content() {
 
   if (currentUser === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="bg-gradient-to-b from-amber-50 to-orange-50 dark:from-slate-800 dark:to-slate-900 p-8 rounded-xl shadow-2xl border-2 border-amber-200 dark:border-amber-800">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
+        <div className="bg-gradient-to-b from-gray-800 to-slate-900 p-8 rounded-xl shadow-2xl border border-gray-600">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-amber-800 dark:text-amber-200 font-semibold">🌟 Loading your profile...</p>
+            <div className="w-8 h-8 border-4 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-300 font-medium">Loading your profile...</p>
           </div>
         </div>
       </div>
@@ -275,7 +284,7 @@ function Content() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
       <CharacterStats
         adventure={getAdventure?.adventure}
         inventory={getAdventure?.inventory || []}
