@@ -1,0 +1,36 @@
+{
+  "name": "fable-forge",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:frontend dev:backend",
+    "dev:frontend": "vite --open",
+    "dev:backend": "convex dev",
+    "predev": "convex dev --until-success && convex dashboard",
+    "build": "tsc -b && vite build",
+    "lint": "bunx --bun biome lint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@convex-dev/better-auth": "^0.8.6",
+    "better-auth": "1.3.8",
+    "convex": "^1.27.2",
+    "openai": "^5.23.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.4",
+    "@tailwindcss/vite": "^4.1.13",
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.3",
+    "globals": "^15.15.0",
+    "npm-run-all": "^4.1.5",
+    "tailwindcss": "^4.1.13",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.7"
+  }
+}
