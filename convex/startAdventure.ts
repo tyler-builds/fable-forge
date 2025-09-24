@@ -1,4 +1,4 @@
-import { action, mutation, query } from "./_generated/server";
+import { action } from "./_generated/server";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -121,7 +121,7 @@ Always mention the stat cost/effect in the outcome text (e.g., "This costs 12 MP
   };
 }
 
-export const createWorld = action(async (context, params: { playerClass: string, stats: any }) => {
+export const createWorld = action(async (_, params: { playerClass: string, stats: any }) => {
   const systemPrompt = `
   You are a Dungeon Master. Create a fantasy world setting for the player:
   Class: ${params.playerClass}
@@ -141,7 +141,7 @@ export const createWorld = action(async (context, params: { playerClass: string,
   return { worldId: -1, startText: text }
 });
 
-export const takeTurnWithRoll = action(async (context, params: {
+export const takeTurnWithRoll = action(async (_, params: {
   playerAction: string,
   playerClass: string,
   stats: any,
@@ -223,6 +223,9 @@ Always mention the stat cost/effect in the outcome text.`
       outcome: parsed.outcome || "The magical energies swirl unpredictably...",
       glossaryTerms: parsed.glossaryTerms || [],
       inventoryChanges: parsed.inventoryChanges || [],
+      requiresRoll: false,
+      statToRoll: null,
+      rollDC: 15,
       statAdjustment: parsed.statAdjustment || false,
       statToAdjust: parsed.statToAdjust || null,
       adjustmentAmount: parsed.adjustmentAmount || 0,
@@ -235,6 +238,9 @@ Always mention the stat cost/effect in the outcome text.`
       outcome: response,
       glossaryTerms: [],
       inventoryChanges: [],
+      requiresRoll: false,
+      statToRoll: null,
+      rollDC: 15,
       statAdjustment: false,
       statToAdjust: null,
       adjustmentAmount: 0,
@@ -244,7 +250,7 @@ Always mention the stat cost/effect in the outcome text.`
   }
 });
 
-export const takeTurn = action(async (context, params: {
+export const takeTurn = action(async (_, params: {
   playerAction: string,
   playerClass: string,
   stats: any,

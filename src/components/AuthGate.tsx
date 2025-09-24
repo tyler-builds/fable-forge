@@ -1,10 +1,8 @@
-import { useQuery } from "convex/react";
+import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { api } from "../../convex/_generated/api";
 import { AuthLayout } from "./AuthLayout";
 import { LoginForm } from "./LoginForm";
 import { SignupForm } from "./SignupForm";
-import { useState } from "react";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");

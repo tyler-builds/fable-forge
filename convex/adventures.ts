@@ -355,7 +355,7 @@ export const generateAdventureTitle = action({
     characterClass: v.string(),
     worldDescription: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (_, args) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-5-nano",
       messages: [
