@@ -37,10 +37,11 @@ export default defineSchema({
 
   adventureActions: defineTable({
     adventureId: v.id("adventures"),
-    type: v.union(v.literal("world"), v.literal("action"), v.literal("result")),
+    type: v.union(v.literal("world"), v.literal("action"), v.literal("result"), v.literal("roll")),
     content: v.string(),
     timestamp: v.number(),
-    turnNumber: v.number()
+    turnNumber: v.number(),
+    eventOptions: v.optional(v.array(v.string()))
   }).index("by_adventure", ["adventureId"]).index("by_adventure_turn", ["adventureId", "turnNumber"]),
 
   adventureInventory: defineTable({

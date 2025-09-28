@@ -1,327 +1,218 @@
 import { action } from "./_generated/server";
+import { api } from "./_generated/api";
+import { v } from "convex/values";
 import OpenAI from "openai";
+import { dndDmSchema } from "./dmSchema";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-function buildTurnPrompt(params: {
-  playerClass: string,
-  stats: any,
-  currentSituation: string,
-  recentHistory: string,
-  playerAction: string,
-  inventory: Array<{ name: string, quantity: number, description?: string }>,
-  forceEvent?: boolean
-}) {
-  return {
-    systemPrompt: `You are a Dungeon Master. Respond with JSON containing:
-- "outcome" (the story result)
-- "glossaryTerms" (array of {term, definition} objects for any new concepts)
-- "inventoryChanges" (array of {name, quantityChange, description?, reason?} objects for items gained/lost)
-- "requiresRoll" (boolean - true if this action needs a stat check)
-- "statToRoll" (string - "str", "dex", "con", "int", "wis", or "cha" if requiresRoll is true)
-- "rollDC" (number - difficulty class from 10-20 if requiresRoll is true, where 10=trivial, 15=moderate, 20=very hard)
-- "statAdjustment" (boolean - true if this action affects player stats like HP/MP)
-- "statToAdjust" (string - "hp", "mp", "str", "dex", "con", "int", "wis", or "cha" if statAdjustment is true)
-- "adjustmentAmount" (number - positive for gain, negative for loss if statAdjustment is true)
-- "proactiveEvent" (string or null - occasionally generate world events that require player decisions)
-- "eventOptions" (array of strings or null - if proactiveEvent is set, provide 2-4 choice options for the player)
 
-Example: {
-  "outcome": "You attempt to climb the steep cliff face...",
-  "glossaryTerms": [],
-  "inventoryChanges": [],
-  "requiresRoll": true,
-  "statToRoll": "str",
-  "rollDC": 15,
-  "statAdjustment": false,
-  "statToAdjust": null,
-  "adjustmentAmount": 0,
-  "proactiveEvent": null,
-  "eventOptions": null
-}
 
-Example with spell: {
-  "outcome": "You cast a powerful fireball spell, scorching the enemies but draining your magical energy.",
-  "glossaryTerms": [],
-  "inventoryChanges": [],
-  "requiresRoll": false,
-  "statToRoll": null,
-  "rollDC": null,
-  "statAdjustment": true,
-  "statToAdjust": "mp",
-  "adjustmentAmount": -12,
-  "proactiveEvent": null,
-  "eventOptions": null
-}
+export const takeTurn = action({
+  args: {
+    adventureId: v.id("adventures"),
+    userPrompt: v.string()
+  },
+  handler: async (ctx, params) => {
+    console.time("takeTurn");
+    // Add user action to the adventure log first
+    await ctx.runMutation(api.adventures.addAdventureAction, {
+      adventureId: params.adventureId,
+      type: "action",
+      content: params.userPrompt
+    });
 
-Example with event: {
-  "outcome": "You successfully gather berries from the bush.",
-  "glossaryTerms": [],
-  "inventoryChanges": [{"name": "Wild Berries", "quantityChange": 3, "description": "Fresh forest berries"}],
-  "requiresRoll": false,
-  "statToRoll": null,
-  "rollDC": null,
-  "statAdjustment": false,
-  "statToAdjust": null,
-  "adjustmentAmount": 0,
-  "proactiveEvent": "A hooded stranger approaches from the shadows, offering to trade rare herbs for your berries.",
-  "eventOptions": ["Accept the trade", "Politely decline and walk away", "Ask what the herbs do first", "Draw your weapon defensively"]
-}`,
-    userPrompt: `Player Character: ${params.playerClass} with stats ${JSON.stringify(params.stats)}
+    // Fetch all required data from database
+    console.time("getAdventureFromDB");
+    const adventure = await ctx.runQuery(api.adventures.getAdventure, {
+      adventureId: params.adventureId
+    });
+    console.timeEnd("getAdventureFromDB");
 
-Current Inventory: ${JSON.stringify(params.inventory)}
+    if (!adventure) {
+      throw new Error("Adventure not found");
+    }
 
-Current Situation: ${params.currentSituation}
+    const { adventure: adventureData, inventory, actions } = adventure;
 
-Recent History:
-${params.recentHistory}
+    // Build recent history from actions
+    const actionHistory = actions.map((action: any) => ({
+      type: action.type,
+      text: action.content
+    }));
 
-Player Action: ${params.playerAction}
+    const recentHistory = actionHistory.slice(-3).map((entry: any) =>
+      `${entry.type === 'world' ? 'SETTING' : entry.type === 'action' ? 'PLAYER' : 'OUTCOME'}: ${entry.text}`
+    ).join('\n');
 
-Generate the outcome of this action. Consider the player's stats, class abilities, and available inventory.
-Be creative, engaging, and include potential consequences or new opportunities.
-Keep responses concise but vivid (2-3 sentences max).
+    // Check if roll is needed
+    const mostRecentResult = actionHistory.filter((action: any) => action.type === 'result').slice(-1)[0]?.text || "";
+    const rollCheck = await getRollResultIfNeeded(params.userPrompt, mostRecentResult);
 
-STAT CHECKS: Set requiresRoll to true and specify statToRoll and rollDC when actions involve:
-- Physical tasks (climbing, jumping, breaking things) -> "str" or "dex"
-- Mental tasks (solving puzzles, remembering lore) -> "int" or "wis"
-- Social interactions (persuasion, intimidation) -> "cha"
-- Endurance/survival tasks -> "con"
+    let rollContext = "";
+    if (rollCheck.requiresRoll) {
+      const statToRoll = rollCheck.statToRoll;
+      const rollDC = rollCheck.rollDC || 15;
+      const statValue = Math.max(1, Math.min(30, adventureData.currentStats[statToRoll as keyof typeof adventureData.currentStats] || 10));
+      const modifier = Math.floor((statValue - 10) / 2);
+      const d20 = Math.floor(Math.random() * 20) + 1;
+      const total = d20 + modifier;
+      const success = total >= rollDC;
 
-DIFFICULTY CLASSES: Set rollDC based on task difficulty:
-- DC 10: Trivial tasks (climbing a rope, basic social interaction)
-- DC 12: Easy tasks (simple acrobatics, easy puzzle)
-- DC 15: Moderate tasks (scaling a wall, complex negotiation)
-- DC 18: Hard tasks (dangerous climb, difficult riddle)
-- DC 20: Very hard tasks (near-impossible feats)
+      // Add roll result to adventure log
+      console.time("addRollResultToLog");
+      await ctx.runMutation(api.adventures.addAdventureAction, {
+        adventureId: params.adventureId,
+        type: "roll",
+        content: `🎲 Rolling ${statToRoll.toUpperCase()}... ${d20} + ${modifier} = ${total} vs DC ${rollDC} (${success ? "Success!" : "Failed!"})`
+      });
+      console.timeEnd("addRollResultToLog");
 
-PROACTIVE EVENTS: ${params.forceEvent ? 'GENERATE A PROACTIVE EVENT for this response' : 'Do NOT generate a proactive event for this response'}. ${params.forceEvent ? `
-Create a proactiveEvent to make the world feel alive:
-- Environmental challenges ("A storm approaches, seek shelter!")
-- NPCs approaching with requests/offers
-- Discovery of interesting locations or items
-- Moral dilemmas or choices
-- Signs of danger or opportunity
+      rollContext = `\n\nROLL RESULT: ${statToRoll.toUpperCase()} check - rolled ${d20} + ${modifier} = ${total} vs DC ${rollDC} (${success ? 'SUCCESS' : 'FAILURE'})`;
+    }
 
-When you create a proactiveEvent, ALWAYS provide eventOptions with 2-4 meaningful choices that let the player engage with the situation. Make choices distinct and interesting, not just "yes/no". Consider the player's class and stats when crafting options.` : ''}
+    // Determine if event should be triggered (1 in 4 chance)
+    const shouldTriggerEvent = Math.random() < 0.25;
 
-When appropriate, include inventory changes (items gained, lost, used, or discovered).
-Use negative quantityChange for items lost/used, positive for items gained.
+    // Generate AI response using streamlined prompt and JSON schema
+    const systemPrompt = `You are a Dungeon Master. Generate the outcome of the player's action. Be creative, engaging, and include potential consequences or new opportunities. Keep responses concise but vivid (2-3 sentences max).${shouldTriggerEvent ? ' Include a proactive world event to make the story feel alive.' : ''}`;
 
-STAT ADJUSTMENTS: Set statAdjustment to true when actions affect player stats:
-- Spell casting: reduces MP (e.g., "mp", -10 for a fireball spell)
-- Taking damage: reduces HP (e.g., "hp", -8 from enemy attack)
-- Healing: restores HP (e.g., "hp", +15 from potion)
-- Rest/meditation: restores MP (e.g., "mp", +5 from short rest)
-- Permanent stat changes: from magical effects (e.g., "str", +1 from strength potion)
+    const userPrompt = `Player Character: ${adventureData.characterClass} with stats ${JSON.stringify(adventureData.currentStats)}
 
-Always mention the stat cost/effect in the outcome text (e.g., "This costs 12 MP" or "You take 5 damage").`
-  };
-}
+Current Inventory: ${JSON.stringify(inventory.map(item => ({ name: item.itemName, quantity: item.quantity, description: item.description })))}
 
-export const createWorld = action(async (_, params: { playerClass: string, stats: any }) => {
-  const systemPrompt = `
-  You are a Dungeon Master. Create a fantasy world setting for the player:
-  Class: ${params.playerClass}
-  Stats: ${JSON.stringify(params.stats)}
-  The world should be rich but concise.
-  Output ONLY a short description of the world and the player's starting location.
-  `;
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-5-nano",
-    reasoning_effort: "medium",
-    messages: [{ role: "system", content: systemPrompt }],
-  });
-
-  const text = completion.choices[0].message?.content ?? "A mysterious land awaits.";
-
-  return { worldId: -1, startText: text }
-});
-
-export const takeTurnWithRoll = action(async (_, params: {
-  playerAction: string,
-  playerClass: string,
-  stats: any,
-  currentSituation: string,
-  actionHistory: Array<{ type: string, text: string }>,
-  inventory: Array<{ name: string, quantity: number, description?: string }>,
-  rollResult: number,
-  statRolled: string,
-  success: boolean
-}) => {
-  const recentHistory = params.actionHistory.slice(-3).map(entry =>
-    `${entry.type === 'world' ? 'SETTING' : entry.type === 'action' ? 'PLAYER' : 'OUTCOME'}: ${entry.text}`
-  ).join('\n');
-
-  const rollPrompt = {
-    systemPrompt: `You are a Dungeon Master. The player attempted an action requiring a ${params.statRolled.toUpperCase()} check.
-They rolled ${params.rollResult} and ${params.success ? 'SUCCEEDED' : 'FAILED'}.
-
-Respond with JSON containing:
-- "outcome" (the story result based on the roll)
-- "glossaryTerms" (array of {term, definition} objects for any new concepts)
-- "inventoryChanges" (array of {name, quantityChange, description?, reason?} objects for items gained/lost)
-- "statAdjustment" (boolean - true if this action affects player stats like HP/MP)
-- "statToAdjust" (string - "hp", "mp", "str", "dex", "con", "int", "wis", or "cha" if statAdjustment is true)
-- "adjustmentAmount" (number - positive for gain, negative for loss if statAdjustment is true)
-- "proactiveEvent" (string or null - occasionally generate world events that require player decisions)
-- "eventOptions" (array of strings or null - if proactiveEvent is set, provide 2-4 choice options for the player)
-
-Base the outcome on whether they succeeded or failed the roll. Make failures interesting, not just dead ends.`,
-    userPrompt: `Player Character: ${params.playerClass} with stats ${JSON.stringify(params.stats)}
-
-Current Inventory: ${JSON.stringify(params.inventory)}
-
-Current Situation: ${params.currentSituation}
+Current Situation: ${adventureData.worldDescription}
 
 Recent History:
 ${recentHistory}
 
-Player Action: ${params.playerAction}
-Stat Rolled: ${params.statRolled.toUpperCase()}
-Roll Result: ${params.rollResult}
-Success: ${params.success ? 'YES' : 'NO'}
+Player Action: ${params.userPrompt}${rollContext}
 
-Generate the outcome based on this roll result. Keep responses concise but vivid (2-3 sentences max).
-
-STAT ADJUSTMENTS: Set statAdjustment to true when the action/outcome affects player stats:
-- Spell casting: reduces MP
-- Taking damage: reduces HP
-- Healing: restores HP
-- Rest/meditation: restores MP
-- Permanent stat changes: from magical effects
-
-Always mention the stat cost/effect in the outcome text.`
-  };
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-5-nano",
-    response_format: {
-      type: "json_object"
-    },
-    reasoning_effort: "medium",
-    messages: [
-      {
-        role: "system",
-        content: rollPrompt.systemPrompt
+Generate the outcome of this action considering the player's stats, class abilities, and available inventory.`;
+    console.time("generateTakeTurnResponse");
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5-nano",
+      response_format: {
+        type: "json_schema",
+        json_schema: dndDmSchema
       },
-      {
-        role: "user",
-        content: rollPrompt.userPrompt
-      }
-    ]
-  });
+      reasoning_effort: "minimal",
+      max_completion_tokens: 600,
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user",
+          content: userPrompt
+        }
+      ]
+    });
+    console.timeEnd("generateTakeTurnResponse");
 
-  const response = completion.choices[0].message?.content ?? '{"outcome": "The magical energies swirl unpredictably...", "glossaryTerms": [], "inventoryChanges": [], "proactiveEvent": null}';
+    const response = completion.choices[0].message?.content;
+    if (!response) {
+      console.error("OpenAI completion:", completion);
+      throw new Error("No response from AI - completion was empty");
+    }
 
-  try {
-    const parsed = JSON.parse(response);
+    let parsed;
+    try {
+      parsed = JSON.parse(response);
+    } catch (error) {
+      console.error("Failed to parse AI response:", response);
+      console.error("Parse error:", error);
+      throw new Error("Invalid JSON response from AI");
+    }
+
+    // Add outcome to adventure log
+    await ctx.runMutation(api.adventures.addAdventureAction, {
+      adventureId: params.adventureId,
+      type: "result",
+      content: parsed.outcome
+    });
+
+    // Add proactive event if present
+    if (parsed.proactiveEvent) {
+      await ctx.runMutation(api.adventures.addAdventureAction, {
+        adventureId: params.adventureId,
+        type: "result",
+        content: `🌟 ${parsed.proactiveEvent}`,
+        eventOptions: parsed.eventOptions || undefined
+      });
+    }
+
+    // Update glossary if new terms
+    if (parsed.glossaryTerms && parsed.glossaryTerms.length > 0) {
+      await ctx.runMutation(api.adventures.updateAdventureGlossary, {
+        adventureId: params.adventureId,
+        glossaryTerms: parsed.glossaryTerms
+      });
+    }
+
+    // Update inventory if changes
+    if (parsed.inventoryChanges && parsed.inventoryChanges.length > 0) {
+      await ctx.runMutation(api.adventures.updateAdventureInventory, {
+        adventureId: params.adventureId,
+        inventoryChanges: parsed.inventoryChanges
+      });
+    }
+
+    // Update stats if adjustments
+    if (parsed.statAdjustment && parsed.statToAdjust && parsed.adjustmentAmount !== 0) {
+      await ctx.runMutation(api.adventures.updateAdventureStats, {
+        adventureId: params.adventureId,
+        statToAdjust: parsed.statToAdjust,
+        adjustmentAmount: parsed.adjustmentAmount
+      });
+    }
+    console.timeEnd("takeTurn");
+    // Return minimal response - frontend will get updates via convex queries
     return {
-      outcome: parsed.outcome || "The magical energies swirl unpredictably...",
-      glossaryTerms: parsed.glossaryTerms || [],
-      inventoryChanges: parsed.inventoryChanges || [],
-      requiresRoll: false,
-      statToRoll: null,
-      rollDC: 15,
-      statAdjustment: parsed.statAdjustment || false,
-      statToAdjust: parsed.statToAdjust || null,
-      adjustmentAmount: parsed.adjustmentAmount || 0,
-      proactiveEvent: parsed.proactiveEvent || null,
-      eventOptions: parsed.eventOptions || null
-    };
-  } catch (error) {
-    console.error("Failed to parse roll response:", error);
-    return {
-      outcome: response,
-      glossaryTerms: [],
-      inventoryChanges: [],
-      requiresRoll: false,
-      statToRoll: null,
-      rollDC: 15,
-      statAdjustment: false,
-      statToAdjust: null,
-      adjustmentAmount: 0,
-      proactiveEvent: null,
-      eventOptions: null
+      success: true
     };
   }
 });
 
-export const takeTurn = action(async (_, params: {
-  playerAction: string,
-  playerClass: string,
-  stats: any,
-  currentSituation: string,
-  actionHistory: Array<{ type: string, text: string }>,
-  inventory: Array<{ name: string, quantity: number, description?: string }>,
-  forceEvent?: boolean
-}) => {
-  const recentHistory = params.actionHistory.slice(-3).map(entry =>
-    `${entry.type === 'world' ? 'SETTING' : entry.type === 'action' ? 'PLAYER' : 'OUTCOME'}: ${entry.text}`
-  ).join('\n');
-
-  const prompts = buildTurnPrompt({
-    playerClass: params.playerClass,
-    stats: params.stats,
-    currentSituation: params.currentSituation,
-    recentHistory,
-    playerAction: params.playerAction,
-    inventory: params.inventory,
-    forceEvent: params.forceEvent
-  });
-
-  const completion = await openai.chat.completions.create({
+async function getRollResultIfNeeded(playerAction: string, mostRecentResult: string) {
+  console.time("getRollResultIfNeeded");
+  const rollCheck = await openai.chat.completions.create({
     model: "gpt-5-nano",
     response_format: {
-      type: "json_object"
+      type: "json_schema",
+      json_schema: {
+        name: "roll_check",
+        schema: {
+          type: "object",
+          properties: {
+            requiresRoll: { type: "boolean" },
+            statToRoll: { type: "string", enum: ["str", "dex", "con", "int", "wis", "cha"] },
+            rollDC: { type: "integer" }
+          },
+          required: ["requiresRoll"]
+        }
+      }
     },
-    reasoning_effort: "medium",
     messages: [
       {
         role: "system",
-        content: prompts.systemPrompt
+        content:
+          "You are a fast D&D rules assistant. Decide if the player's action requires a d20 roll. If yes, choose stat and DC."
       },
       {
         role: "user",
-        content: prompts.userPrompt
+        content: JSON.stringify({
+          mostRecentResult,
+          playerAction
+        })
       }
-    ]
+    ],
+    max_completion_tokens: 50,
+    reasoning_effort: "minimal"
   });
-
-  const response = completion.choices[0].message?.content ?? '{"outcome": "Something mysterious happens...", "glossaryTerms": [], "inventoryChanges": []}';
-
-  try {
-    const parsed = JSON.parse(response);
-    return {
-      outcome: parsed.outcome || "Something mysterious happens...",
-      glossaryTerms: parsed.glossaryTerms || [],
-      inventoryChanges: parsed.inventoryChanges || [],
-      requiresRoll: parsed.requiresRoll || false,
-      statToRoll: parsed.statToRoll || null,
-      rollDC: parsed.rollDC || 15,
-      statAdjustment: parsed.statAdjustment || false,
-      statToAdjust: parsed.statToAdjust || null,
-      adjustmentAmount: parsed.adjustmentAmount || 0,
-      proactiveEvent: parsed.proactiveEvent || null,
-      eventOptions: parsed.eventOptions || null
-    };
-  } catch (error) {
-    console.error("Failed to parse structured response:", error);
-    return {
-      outcome: response,
-      glossaryTerms: [],
-      inventoryChanges: [],
-      requiresRoll: false,
-      statToRoll: null,
-      rollDC: 15,
-      statAdjustment: false,
-      statToAdjust: null,
-      adjustmentAmount: 0,
-      proactiveEvent: null,
-      eventOptions: null
-    };
-  }
-});
+  console.timeEnd("getRollResultIfNeeded");
+  return JSON.parse(rollCheck.choices[0].message.content!);
+}

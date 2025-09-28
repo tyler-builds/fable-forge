@@ -50,8 +50,8 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-2">🌟 Forge Your Legend</h2>
-        <p className="text-amber-700 dark:text-amber-300 text-sm">Create an account to begin your epic journey</p>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-2">🌟 Forge Your Legend</h2>
+        <p className="text-blue-300 text-sm">Create an account to begin your epic journey</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,7 +62,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         )}
 
         <div>
-          <label htmlFor="signup-email" className="block text-sm font-semibold text-amber-800 dark:text-amber-200 mb-2">
+          <label htmlFor="signup-email" className="block text-sm font-semibold text-blue-300 mb-2">
             📧 Email Address
           </label>
           <input
@@ -70,7 +70,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border-2 border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+            className="w-full px-4 py-3 rounded-lg border-2 border-gray-600 bg-gray-800 text-slate-200 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             placeholder="your.email@realm.com"
             disabled={isLoading}
             required
@@ -80,7 +80,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         <div>
           <label
             htmlFor="signup-password"
-            className="block text-sm font-semibold text-amber-800 dark:text-amber-200 mb-2">
+            className="block text-sm font-semibold text-blue-300 mb-2">
             🗝️ Password
           </label>
           <input
@@ -88,7 +88,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border-2 border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+            className="w-full px-4 py-3 rounded-lg border-2 border-gray-600 bg-gray-800 text-slate-200 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             placeholder="Choose a strong passphrase"
             disabled={isLoading}
             required
@@ -99,7 +99,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         <div>
           <label
             htmlFor="confirm-password"
-            className="block text-sm font-semibold text-amber-800 dark:text-amber-200 mb-2">
+            className="block text-sm font-semibold text-blue-300 mb-2">
             🔒 Confirm Password
           </label>
           <input
@@ -107,7 +107,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border-2 border-amber-300 dark:border-amber-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
+            className="w-full px-4 py-3 rounded-lg border-2 border-gray-600 bg-gray-800 text-slate-200 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             placeholder="Confirm your passphrase"
             disabled={isLoading}
             required
@@ -117,7 +117,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 px-4 rounded-lg border-2 border-emerald-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-lg border border-blue-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2">
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -130,12 +130,12 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
       </form>
 
       <div className="text-center">
-        <p className="text-amber-700 dark:text-amber-300 text-sm">
+        <p className="text-blue-300 text-sm">
           Already have an account?{" "}
           <button
             type="button"
             onClick={onSwitchToLogin}
-            className="font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 underline hover:no-underline transition-colors"
+            className="font-semibold text-blue-400 hover:text-blue-200 underline hover:no-underline transition-colors"
             disabled={isLoading}>
             Continue Your Quest
           </button>

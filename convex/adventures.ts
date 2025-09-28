@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 import { authComponent } from "./auth";
 import OpenAI from "openai";
 
@@ -81,7 +82,82 @@ export const getAdventure = query({
   },
 });
 
-export const createAdventure = mutation({
+export const getAdventureActions = query({
+  args: { adventureId: v.id("adventures") },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    const adventure = await ctx.db.get(args.adventureId);
+    if (!adventure || adventure.userId !== user._id || adventure.deletedAt) {
+      throw new Error("Adventure not found or access denied");
+    }
+
+    const actions = await ctx.db
+      .query("adventureActions")
+      .withIndex("by_adventure", (q) => q.eq("adventureId", args.adventureId))
+      .order("asc")
+      .collect();
+
+    return actions;
+  },
+});
+
+export const getActiveEvent = query({
+  args: {
+    adventureId: v.id("adventures"),
+  },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    const adventure = await ctx.db.get(args.adventureId);
+    if (!adventure || adventure.userId !== user._id) {
+      throw new Error("Adventure not found or access denied");
+    }
+
+    // Find the most recent event with options that hasn't been resolved
+    const actions = await ctx.db
+      .query("adventureActions")
+      .withIndex("by_adventure", (q) => q.eq("adventureId", args.adventureId))
+      .order("desc")
+      .collect();
+
+    // Look for the most recent event action that has eventOptions
+    const activeEventAction = actions.find(action => 
+      action.type === "result" && 
+      action.content.startsWith("🌟") && 
+      action.eventOptions && 
+      action.eventOptions.length > 0
+    );
+
+    if (!activeEventAction) {
+      return null;
+    }
+
+    // Check if this event has been resolved by looking for a subsequent action
+    // If there's any action after this event, consider it resolved
+    const laterActions = actions.filter(action => 
+      action.timestamp > activeEventAction.timestamp
+    );
+
+    if (laterActions.length > 0) {
+      return null; // Event has been resolved
+    }
+
+    return {
+      eventText: activeEventAction.content.replace("🌟 ", ""),
+      eventOptions: activeEventAction.eventOptions,
+      actionId: activeEventAction._id
+    };
+  },
+});
+
+export const createAdventureRecord = mutation({
   args: {
     title: v.string(),
     characterClass: v.union(v.literal("warrior"), v.literal("mage")),
@@ -131,11 +207,91 @@ export const createAdventure = mutation({
   },
 });
 
+export const createAdventure = action({
+  args: {
+    playerClass: v.union(v.literal("warrior"), v.literal("mage")),
+    stats: v.object({
+      hp: v.number(),
+      mp: v.number(),
+      str: v.number(),
+      dex: v.number(),
+      con: v.number(),
+      int: v.number(),
+      wis: v.number(),
+      cha: v.number(),
+    }),
+  },
+  handler: async (ctx, args): Promise<string> => {
+    // Generate both world description and title in a single OpenAI call
+    const systemPrompt = `You are a Dungeon Master. Create a fantasy adventure for a ${args.playerClass} character.
+
+Generate a JSON response with:
+1. "worldDescription": A rich but concise fantasy world setting and starting location (2-3 sentences)
+2. "title": A short, exciting adventure title (2-4 words, epic and fantasy-themed)
+
+Be creative and make the world compelling for a ${args.playerClass}.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5-nano",
+      reasoning_effort: "minimal",
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "adventure_setup",
+          schema: {
+            type: "object",
+            properties: {
+              worldDescription: { type: "string" },
+              title: { type: "string" }
+            },
+            required: ["worldDescription", "title"]
+          }
+        }
+      },
+      messages: [{ role: "system", content: systemPrompt }],
+    });
+
+    const response = completion.choices[0].message?.content;
+    if (!response) {
+      throw new Error("No response from AI");
+    }
+
+    let parsed: { title?: string; worldDescription?: string };
+    try {
+      parsed = JSON.parse(response);
+    } catch (error) {
+      console.error("Failed to parse AI response:", response);
+      throw new Error("Invalid JSON response from AI");
+    }
+
+    const title = parsed.title || "Untitled Adventure";
+    const worldDescription = parsed.worldDescription || "A mysterious land awaits.";
+
+    // Create adventure in database using internal mutation
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    const now = Date.now();
+
+    const adventureId = await ctx.runMutation(api.adventures.createAdventureRecord, {
+      title,
+      characterClass: args.playerClass,
+      characterStats: args.stats,
+      worldDescription,
+    });
+
+    return adventureId;
+  },
+});
+
 export const addAdventureAction = mutation({
   args: {
     adventureId: v.id("adventures"),
-    type: v.union(v.literal("action"), v.literal("result")),
+    type: v.union(v.literal("action"), v.literal("result"), v.literal("roll")),
     content: v.string(),
+    eventOptions: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx);
@@ -165,6 +321,7 @@ export const addAdventureAction = mutation({
       content: args.content,
       timestamp: now,
       turnNumber: newTurnCount,
+      eventOptions: args.eventOptions,
     });
 
     return newTurnCount;
@@ -350,26 +507,3 @@ export const deleteAdventure = mutation({
   },
 });
 
-export const generateAdventureTitle = action({
-  args: {
-    characterClass: v.string(),
-    worldDescription: v.string(),
-  },
-  handler: async (_, args) => {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
-      messages: [
-        {
-          role: "system",
-          content: "Generate a short, exciting adventure title (2-4 words) based on the character class and world description. Make it sound epic and fantasy-themed.",
-        },
-        {
-          role: "user",
-          content: `Character: ${args.characterClass}, World: ${args.worldDescription}`,
-        },
-      ],
-    });
-
-    return completion.choices[0].message?.content || "Untitled Adventure";
-  },
-});

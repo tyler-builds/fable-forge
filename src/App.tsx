@@ -22,27 +22,24 @@ type AppView = "dashboard" | "character-creation" | "game";
 
 function Content() {
   const takeTurn = useAction(api.startAdventure.takeTurn);
-  const takeTurnWithRoll = useAction(api.startAdventure.takeTurnWithRoll);
   const currentUser = useQuery(api.auth.getCurrentUser);
   const { signOut } = authClient;
 
   const [currentView, setCurrentView] = useState<AppView>("dashboard");
   const [currentAdventureId, setCurrentAdventureId] = useState<Id<"adventures"> | null>(null);
 
-  const addAction = useMutation(api.adventures.addAdventureAction);
-  const updateInventory = useMutation(api.adventures.updateAdventureInventory);
-  const updateGlossary = useMutation(api.adventures.updateAdventureGlossary);
-  const updateStats = useMutation(api.adventures.updateAdventureStats);
   const deleteAdventure = useMutation(api.adventures.deleteAdventure);
   const getAdventure = useQuery(
     api.adventures.getAdventure,
     currentAdventureId ? { adventureId: currentAdventureId } : "skip"
   );
+  const getActiveEvent = useQuery(
+    api.adventures.getActiveEvent,
+    currentAdventureId ? { adventureId: currentAdventureId } : "skip"
+  );
 
   const [playerInput, setPlayerInput] = useState<string>("");
   const [isProcessingAction, setIsProcessingAction] = useState(false);
-  const [activeEvent, setActiveEvent] = useState<string | null>(null);
-  const [eventOptions, setEventOptions] = useState<string[] | null>(null);
   const adventureLogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,8 +59,6 @@ function Content() {
     setCurrentView("dashboard");
     setCurrentAdventureId(null);
     setPlayerInput("");
-    setActiveEvent(null);
-    setEventOptions(null);
   };
 
   const handleDeleteAdventure = async (adventureId: Id<"adventures">) => {
@@ -81,168 +76,46 @@ function Content() {
     setCurrentAdventureId(adventureId);
   };
 
-  const rollStat = (
-    statValue: number,
-    dc: number
-  ): { roll: number; total: number; success: boolean; modifier: number } => {
-    const validStatValue = Math.max(1, Math.min(30, statValue || 10));
-    const modifier = Math.floor((validStatValue - 10) / 2);
-    const d20 = Math.floor(Math.random() * 20) + 1;
-    const total = d20 + modifier;
-    const success = total >= dc;
-    return { roll: d20, total, success, modifier };
-  };
-
   const handleEventChoice = async (choice: string) => {
-    if (!currentAdventureId || !getAdventure) return;
+    if (!currentAdventureId) return;
 
     setIsProcessingAction(true);
-    setActiveEvent(null);
-    setEventOptions(null);
 
     try {
-      // Add the chosen response to the log
-      await addAction({
-        adventureId: currentAdventureId,
-        type: "action",
-        content: `📝 ${choice}`
-      });
-
-      // Process the choice like a normal action
+      // Process the choice - the backend will handle adding it to the log
       await processPlayerAction(choice);
     } catch (error) {
       console.error("Failed to process event choice:", error);
-      await addAction({
-        adventureId: currentAdventureId,
-        type: "result",
-        content: "⚠️ The magical energies faltered. Please try again."
-      });
+      // Error handling is now done in the backend
     } finally {
       setIsProcessingAction(false);
     }
   };
 
   const processPlayerAction = async (action: string) => {
-    if (!currentAdventureId || !getAdventure) return;
+    if (!currentAdventureId) return;
 
-    const { adventure, actions, inventory } = getAdventure;
-
-    // Determine if an event should be triggered (1 in 4 chance)
-    const shouldTriggerEvent = Math.random() < 0.25;
-
-    // First, get the initial AI response to check if a roll is needed
-    const initialResult = await takeTurn({
-      playerAction: action,
-      playerClass: adventure.characterClass,
-      stats: adventure.currentStats,
-      currentSituation: adventure.worldDescription,
-      actionHistory: actions.map((entry) => ({ type: entry.type, text: entry.content })),
-      inventory: inventory.map((item) => ({
-        name: item.itemName,
-        quantity: item.quantity,
-        description: item.description
-      })),
-      forceEvent: shouldTriggerEvent
-    });
-
-    let finalResult = initialResult;
-
-    if (initialResult.requiresRoll && initialResult.statToRoll) {
-      const statValue = adventure.currentStats[initialResult.statToRoll as keyof typeof adventure.currentStats];
-      const dcTarget = initialResult.rollDC || 15;
-      const rollResult = rollStat(statValue, dcTarget);
-
-      await addAction({
-        adventureId: currentAdventureId,
-        type: "result",
-        content: `🎲 Rolling ${initialResult.statToRoll.toUpperCase()}... ${rollResult.roll} + ${rollResult.modifier} = ${rollResult.total} vs DC ${dcTarget} (${rollResult.success ? "Success!" : "Failed!"})`
-      });
-
-      finalResult = await takeTurnWithRoll({
-        playerAction: action,
-        playerClass: adventure.characterClass,
-        stats: adventure.currentStats,
-        currentSituation: adventure.worldDescription,
-        actionHistory: actions.map((entry) => ({ type: entry.type, text: entry.content })),
-        inventory: inventory.map((item) => ({
-          name: item.itemName,
-          quantity: item.quantity,
-          description: item.description
-        })),
-        rollResult: rollResult.total,
-        statRolled: initialResult.statToRoll,
-        success: rollResult.success
-      });
-    }
-
-    await addAction({
+    // Call the streamlined takeTurn action - everything else is handled in backend
+    await takeTurn({
       adventureId: currentAdventureId,
-      type: "result",
-      content: finalResult.outcome
+      userPrompt: action
     });
 
-    if (finalResult.proactiveEvent && finalResult.eventOptions) {
-      await addAction({
-        adventureId: currentAdventureId,
-        type: "result",
-        content: `🌟 ${finalResult.proactiveEvent}`
-      });
-
-      setActiveEvent(finalResult.proactiveEvent);
-      setEventOptions(finalResult.eventOptions);
-    } else if (finalResult.proactiveEvent) {
-      await addAction({
-        adventureId: currentAdventureId,
-        type: "result",
-        content: `🌟 ${finalResult.proactiveEvent}`
-      });
-    }
-
-    if (finalResult.glossaryTerms && finalResult.glossaryTerms.length > 0) {
-      await updateGlossary({
-        adventureId: currentAdventureId,
-        glossaryTerms: finalResult.glossaryTerms
-      });
-    }
-
-    if (finalResult.inventoryChanges && finalResult.inventoryChanges.length > 0) {
-      await updateInventory({
-        adventureId: currentAdventureId,
-        inventoryChanges: finalResult.inventoryChanges
-      });
-    }
-
-    if (finalResult.statAdjustment && finalResult.statToAdjust && finalResult.adjustmentAmount !== 0) {
-      await updateStats({
-        adventureId: currentAdventureId,
-        statToAdjust: finalResult.statToAdjust,
-        adjustmentAmount: finalResult.adjustmentAmount
-      });
-    }
+    // Event state is now handled by the getActiveEvent query
   };
 
   const handleTakeTurn = async () => {
-    if (!playerInput.trim() || isProcessingAction || !currentAdventureId || !getAdventure) return;
+    if (!playerInput.trim() || isProcessingAction || !currentAdventureId) return;
 
     const action = playerInput.trim();
     setIsProcessingAction(true);
     setPlayerInput("");
 
     try {
-      await addAction({
-        adventureId: currentAdventureId,
-        type: "action",
-        content: action
-      });
-
       await processPlayerAction(action);
     } catch (error) {
       console.error("Failed to process action:", error);
-      await addAction({
-        adventureId: currentAdventureId,
-        type: "result",
-        content: "⚠️ The magical energies faltered. Please try again."
-      });
+      // Error handling is now done in the backend
     } finally {
       setIsProcessingAction(false);
     }
@@ -307,8 +180,8 @@ function Content() {
           isProcessingAction={isProcessingAction}
           onInputChange={setPlayerInput}
           onTakeTurn={handleTakeTurn}
-          activeEvent={activeEvent}
-          eventOptions={eventOptions}
+          activeEvent={getActiveEvent?.eventText || null}
+          eventOptions={getActiveEvent?.eventOptions || null}
           onEventChoice={handleEventChoice}
         />
       </div>

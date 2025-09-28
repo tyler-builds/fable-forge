@@ -10,6 +10,7 @@
 
 import type * as adventures from "../adventures.js";
 import type * as auth from "../auth.js";
+import type * as dmSchema from "../dmSchema.js";
 import type * as http from "../http.js";
 import type * as startAdventure from "../startAdventure.js";
 
@@ -30,6 +31,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   adventures: typeof adventures;
   auth: typeof auth;
+  dmSchema: typeof dmSchema;
   http: typeof http;
   startAdventure: typeof startAdventure;
 }>;

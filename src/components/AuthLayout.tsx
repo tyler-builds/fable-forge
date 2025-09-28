@@ -1,17 +1,17 @@
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-gradient-to-b from-amber-50 to-orange-50 dark:from-slate-800 dark:to-slate-900 rounded-xl shadow-2xl border-2 border-amber-200 dark:border-amber-800 p-8">
+        <div className="bg-gradient-to-b from-gray-800 to-slate-900 rounded-xl shadow-2xl border border-gray-600 p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
               ⚔️ Fable Forge ⚔️
             </h1>
-            <p className="text-amber-800 dark:text-amber-200 text-lg">
+            <p className="text-blue-300 text-lg">
               Enter the Realm
             </p>
-            <div className="mt-4 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+            <div className="mt-4 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
           </div>
 
           {/* Content */}
@@ -20,7 +20,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 
         {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-amber-300 dark:text-amber-400 text-sm">
+          <p className="text-blue-300 text-sm">
             🌟 Where legends are born and adventures await 🌟
           </p>
         </div>
