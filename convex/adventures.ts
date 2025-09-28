@@ -129,8 +129,7 @@ export const getActiveEvent = query({
 
     // Look for the most recent event action that has eventOptions
     const activeEventAction = actions.find(action => 
-      action.type === "result" && 
-      action.content.startsWith("🌟") && 
+      action.type === "event" && 
       action.eventOptions && 
       action.eventOptions.length > 0
     );
@@ -150,7 +149,7 @@ export const getActiveEvent = query({
     }
 
     return {
-      eventText: activeEventAction.content.replace("🌟 ", ""),
+      eventText: activeEventAction.content,
       eventOptions: activeEventAction.eventOptions,
       actionId: activeEventAction._id
     };
@@ -289,7 +288,7 @@ Be creative and make the world compelling for a ${args.playerClass}.`;
 export const addAdventureAction = mutation({
   args: {
     adventureId: v.id("adventures"),
-    type: v.union(v.literal("action"), v.literal("result"), v.literal("roll")),
+    type: v.union(v.literal("action"), v.literal("result"), v.literal("roll"), v.literal("event")),
     content: v.string(),
     eventOptions: v.optional(v.array(v.string())),
   },

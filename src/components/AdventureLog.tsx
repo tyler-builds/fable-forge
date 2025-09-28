@@ -3,7 +3,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 
 interface AdventureAction {
   _id: Id<"adventureActions">;
-  type: "world" | "action" | "result" | "roll";
+  type: "world" | "action" | "result" | "roll" | "event";
   content: string;
   timestamp: number;
   turnNumber: number;
@@ -41,9 +41,9 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
                   ? "bg-gradient-to-r from-amber-900 to-orange-900 border-amber-700"
                   : entry.type === "action"
                     ? "bg-gradient-to-r from-blue-900 to-cyan-900 border-blue-700"
-                    : entry.content.startsWith("🎲 Rolling")
+                    : entry.type === "roll"
                       ? "bg-gradient-to-r from-purple-900 to-indigo-900 border-purple-700"
-                      : entry.content.startsWith("🌟")
+                      : entry.type === "event"
                         ? "bg-gradient-to-r from-yellow-900 to-amber-900 border-yellow-700"
                         : "bg-gradient-to-r from-emerald-900 to-teal-900 border-emerald-700"
               }`}>
@@ -54,9 +54,9 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
                       ? "text-amber-300"
                       : entry.type === "action"
                         ? "text-blue-300"
-                        : entry.content.startsWith("🎲 Rolling")
+                        : entry.type === "roll"
                           ? "text-purple-300"
-                          : entry.content.startsWith("🌟")
+                          : entry.type === "event"
                             ? "text-yellow-300"
                             : "text-emerald-300"
                   }`}>
@@ -64,15 +64,15 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
                     ? "🌍 World Description"
                     : entry.type === "action"
                       ? "⚡ Your Action"
-                      : entry.content.startsWith("🎲 Rolling")
+                      : entry.type === "roll"
                         ? "🎲 Stat Roll"
-                        : entry.content.startsWith("🌟")
+                        : entry.type === "event"
                           ? "🌟 World Event"
                           : "🎲 Result"}
                 </span>
                 <span className="text-xs text-gray-500">{new Date(entry.timestamp).toLocaleTimeString()}</span>
               </div>
-              <p className="text-sm text-gray-200">{entry.content}</p>
+              <p className="text-sm text-gray-200">{entry.type === "event" ? `🌟 ${entry.content}` : entry.content}</p>
             </div>
           ))}
           {isProcessingAction && (

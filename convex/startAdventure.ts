@@ -2,7 +2,7 @@ import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { v } from "convex/values";
 import OpenAI from "openai";
-import { dndDmSchema } from "./dmSchema";
+import { getDndDmSchema } from "./dmSchema";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -73,8 +73,8 @@ export const takeTurn = action({
       rollContext = `\n\nROLL RESULT: ${statToRoll.toUpperCase()} check - rolled ${d20} + ${modifier} = ${total} vs DC ${rollDC} (${success ? 'SUCCESS' : 'FAILURE'})`;
     }
 
-    // Determine if event should be triggered (1 in 4 chance)
-    const shouldTriggerEvent = Math.random() < 0.25;
+    // Determine if event should be triggered with smart cooldown system
+    const shouldTriggerEvent = shouldTriggerWorldEvent(actions, adventureData.turnCount);
 
     // Generate AI response using streamlined prompt and JSON schema
     const systemPrompt = `You are a Dungeon Master. Generate the outcome of the player's action. Be creative, engaging, and include potential consequences or new opportunities. Keep responses concise but vivid (2-3 sentences max).${shouldTriggerEvent ? ' Include a proactive world event to make the story feel alive.' : ''}`;
@@ -96,7 +96,7 @@ Generate the outcome of this action considering the player's stats, class abilit
       model: "gpt-5-nano",
       response_format: {
         type: "json_schema",
-        json_schema: dndDmSchema
+        json_schema: getDndDmSchema(shouldTriggerEvent)
       },
       reasoning_effort: "minimal",
       max_completion_tokens: 600,
@@ -139,8 +139,8 @@ Generate the outcome of this action considering the player's stats, class abilit
     if (parsed.proactiveEvent) {
       await ctx.runMutation(api.adventures.addAdventureAction, {
         adventureId: params.adventureId,
-        type: "result",
-        content: `🌟 ${parsed.proactiveEvent}`,
+        type: "event",
+        content: parsed.proactiveEvent,
         eventOptions: parsed.eventOptions || undefined
       });
     }
@@ -215,4 +215,37 @@ async function getRollResultIfNeeded(playerAction: string, mostRecentResult: str
   });
   console.timeEnd("getRollResultIfNeeded");
   return JSON.parse(rollCheck.choices[0].message.content!);
+}
+
+function shouldTriggerWorldEvent(actions: any[], currentTurn: number): boolean {
+  // Find the most recent world event
+  const lastEventAction = actions
+    .filter(action => action.type === "event")
+    .sort((a, b) => b.turnNumber - a.turnNumber)[0];
+
+  const lastEventTurn = lastEventAction?.turnNumber || 0;
+  const turnsSinceLastEvent = currentTurn - lastEventTurn;
+
+  // Minimum cooldown: no events for at least 3 turns
+  if (turnsSinceLastEvent < 3) {
+    return false;
+  }
+
+  // Progressive probability system:
+  // Turn 3-4: 10% chance
+  // Turn 5-6: 20% chance  
+  // Turn 7-8: 30% chance
+  // Turn 9+: 40% chance (capped)
+  let eventProbability: number;
+  if (turnsSinceLastEvent <= 4) {
+    eventProbability = 0.10;
+  } else if (turnsSinceLastEvent <= 6) {
+    eventProbability = 0.20;
+  } else if (turnsSinceLastEvent <= 8) {
+    eventProbability = 0.30;
+  } else {
+    eventProbability = 0.40;
+  }
+
+  return Math.random() < eventProbability;
 }
