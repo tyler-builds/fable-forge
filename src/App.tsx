@@ -43,6 +43,10 @@ function Content() {
     api.adventures.getActiveEvent,
     currentAdventureId ? { adventureId: currentAdventureId } : "skip"
   );
+  const characterPortrait = useQuery(
+    api.characterPortraits.getPortraitById,
+    getAdventure?.adventure?.characterPortraitId ? { portraitId: getAdventure.adventure.characterPortraitId } : "skip"
+  );
 
   const [playerInput, setPlayerInput] = useState<string>("");
   const [isProcessingAction, setIsProcessingAction] = useState(false);
@@ -173,6 +177,7 @@ function Content() {
           adventure={getAdventure?.adventure}
           inventory={getAdventure?.inventory || []}
           glossary={getAdventure?.glossary || []}
+          characterPortraitUrl={characterPortrait?.imageUrl}
           onReturnToDashboard={handleReturnToDashboard}
           onSignOut={() => signOut()}
           isLoading={!getAdventure}

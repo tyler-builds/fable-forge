@@ -14,6 +14,9 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
 
   const currentUser = useQuery(api.auth.getCurrentUser);
   const createAdventure = useAction(api.adventures.createAdventure);
+  const randomPortrait = useQuery(api.characterPortraits.getRandomPortrait, {
+    characterClass: selectedClass
+  });
 
   const classes = {
     warrior: { hp: 120, mp: 50, str: 15, dex: 12, con: 14, int: 8, wis: 10, cha: 9 },
@@ -26,7 +29,8 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
       // Create complete adventure with world generation and title generation
       const adventureId = await createAdventure({
         playerClass: selectedClass,
-        stats: classes[selectedClass]
+        stats: classes[selectedClass],
+        characterPortraitId: randomPortrait?._id
       });
 
       // Notify parent component
@@ -48,6 +52,23 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
 
         <div className="flex flex-col gap-4">
           <h2 className="text-xl font-bold">Character Creation</h2>
+
+          {/* Character Portrait Preview */}
+          {randomPortrait?.imageUrl && (
+            <div className="flex justify-center">
+              <div className={`rounded-full overflow-hidden w-32 h-32 border-4 ${
+                selectedClass === "warrior"
+                  ? "border-red-500"
+                  : "border-purple-500"
+              }`}>
+                <img
+                  src={randomPortrait.imageUrl}
+                  alt={`${selectedClass} portrait`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-blue-300">Choose your class:</label>

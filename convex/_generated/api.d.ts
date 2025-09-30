@@ -12,6 +12,7 @@ import type * as adventures from "../adventures.js";
 import type * as auth from "../auth.js";
 import type * as backgroundMutations from "../backgroundMutations.js";
 import type * as backgrounds from "../backgrounds.js";
+import type * as characterPortraits from "../characterPortraits.js";
 import type * as dmSchema from "../dmSchema.js";
 import type * as http from "../http.js";
 import type * as sceneUtils from "../sceneUtils.js";
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   backgroundMutations: typeof backgroundMutations;
   backgrounds: typeof backgrounds;
+  characterPortraits: typeof characterPortraits;
   dmSchema: typeof dmSchema;
   http: typeof http;
   sceneUtils: typeof sceneUtils;

@@ -172,6 +172,7 @@ export const createAdventureRecord = mutation({
       cha: v.number(),
     }),
     worldDescription: v.string(),
+    characterPortraitId: v.optional(v.id("characterPortraits")),
   },
   handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx);
@@ -193,6 +194,7 @@ export const createAdventureRecord = mutation({
       lastPlayedAt: now,
       createdAt: now,
       turnCount: 0,
+      characterPortraitId: args.characterPortraitId,
     });
 
     await ctx.db.insert("adventureActions", {
@@ -220,6 +222,7 @@ export const createAdventure = action({
       wis: v.number(),
       cha: v.number(),
     }),
+    characterPortraitId: v.optional(v.id("characterPortraits")),
   },
   handler: async (ctx, args): Promise<Id<"adventures">> => {
     // Generate both world description and title in a single OpenAI call
@@ -280,6 +283,7 @@ Be creative and make the world compelling for a ${args.playerClass}.`;
       characterClass: args.playerClass,
       characterStats: args.stats,
       worldDescription,
+      characterPortraitId: args.characterPortraitId,
     });
 
     return adventureId;

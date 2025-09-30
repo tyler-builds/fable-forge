@@ -42,6 +42,7 @@ interface CharacterStatsProps {
   adventure?: Adventure;
   inventory: InventoryItem[];
   glossary: GlossaryTerm[];
+  characterPortraitUrl?: string;
   onReturnToDashboard: () => void;
   onSignOut: () => void;
   isLoading?: boolean;
@@ -51,6 +52,7 @@ export function CharacterStats({
   adventure,
   inventory,
   glossary,
+  characterPortraitUrl,
   onReturnToDashboard,
   onSignOut,
   isLoading
@@ -102,6 +104,23 @@ export function CharacterStats({
             </button>
           </div>
         </div>
+
+        {/* Character Portrait */}
+        {characterPortraitUrl && (
+          <div className="flex justify-center">
+            <div className={`rounded-full overflow-hidden w-32 h-32 border-4 ${
+              adventure.characterClass === "warrior"
+                ? "border-red-500"
+                : "border-purple-500"
+            }`}>
+              <img
+                src={characterPortraitUrl}
+                alt={`${adventure.characterClass} portrait`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
 
         <div
           className={`p-3 rounded-lg border ${adventure.characterClass === "warrior"

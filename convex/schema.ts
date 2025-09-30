@@ -34,6 +34,7 @@ export default defineSchema({
     summary: v.optional(v.string()), // AI-generated adventure summary
     deletedAt: v.optional(v.number()), // Soft delete timestamp
     currentSceneHash: v.optional(v.string()), // Current scene for background tracking
+    characterPortraitId: v.optional(v.id("characterPortraits")), // Character portrait image
   }).index("by_user", ["userId"]).index("by_status", ["userId", "status"]),
 
   adventureActions: defineTable({
@@ -73,4 +74,10 @@ export default defineSchema({
     .index("by_category", ["sceneCategory"])
     .index("by_usage", ["usageCount"])
     .index("by_last_used", ["lastUsedAt"]),
+
+  characterPortraits: defineTable({
+    characterClass: v.union(v.literal("warrior"), v.literal("mage"), v.literal("rogue")),
+    imageStorageId: v.id("_storage"), // Convex file storage ID
+    portraitIndex: v.number(), // 1-10 for each class
+  }).index("by_class", ["characterClass"]),
 });
