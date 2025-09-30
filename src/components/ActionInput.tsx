@@ -63,7 +63,7 @@ export function ActionInput({
   }
 
   return (
-    <div className="bg-gradient-to-r from-gray-800 to-slate-800 border-t border-gray-600 p-4">
+    <div className="p-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex gap-2">
           <input

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { InventoryPanel } from "./InventoryPanel";
 import { GlossaryPanel } from "./GlossaryPanel";
 
@@ -44,6 +45,8 @@ export function CharacterStats({
   onSignOut,
   isLoading
 }: CharacterStatsProps) {
+  const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
+
   if (isLoading || !adventure) {
     return (
       <div className="w-80 bg-gradient-to-b from-gray-800 to-slate-900 border-r border-gray-600 p-4">
@@ -65,6 +68,14 @@ export function CharacterStats({
           <div className="flex gap-1">
             <button
               type="button"
+              onClick={() => setIsGlossaryOpen(true)}
+              className="text-xs px-2 py-1 rounded bg-purple-700 hover:bg-purple-600 text-purple-200 transition-colors"
+              title="Glossary"
+            >
+              📖
+            </button>
+            <button
+              type="button"
               onClick={onReturnToDashboard}
               className="text-xs px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-blue-200 transition-colors"
               title="Return to Adventures"
@@ -83,27 +94,24 @@ export function CharacterStats({
         </div>
 
         <div
-          className={`p-3 rounded-lg border ${
-            adventure.characterClass === "warrior"
+          className={`p-3 rounded-lg border ${adventure.characterClass === "warrior"
               ? "bg-gradient-to-r from-red-900 to-red-800 border-red-700"
               : "bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700"
-          }`}
+            }`}
         >
           <h3
-            className={`font-semibold capitalize ${
-              adventure.characterClass === "warrior"
+            className={`font-semibold capitalize ${adventure.characterClass === "warrior"
                 ? "text-red-200"
                 : "text-purple-200"
-            }`}
+              }`}
           >
             {adventure.characterClass === "warrior" ? "⚔️" : "🔮"} {adventure.characterClass}
           </h3>
           <p
-            className={`text-xs ${
-              adventure.characterClass === "warrior"
+            className={`text-xs ${adventure.characterClass === "warrior"
                 ? "text-red-300"
                 : "text-purple-300"
-            }`}
+              }`}
           >
             Level 1
           </p>
@@ -148,8 +156,25 @@ export function CharacterStats({
         </div>
 
         <InventoryPanel inventory={inventory} />
-        <GlossaryPanel glossary={glossary} />
       </div>
+
+      {isGlossaryOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setIsGlossaryOpen(false)}>
+          <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-purple-300">📖 Glossary</h3>
+              <button
+                type="button"
+                onClick={() => setIsGlossaryOpen(false)}
+                className="text-gray-400 hover:text-gray-200 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <GlossaryPanel glossary={glossary} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

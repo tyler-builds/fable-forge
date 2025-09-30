@@ -41,43 +41,46 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
           {actions.map((entry) => (
             <div
               key={entry._id}
-              className={`p-4 rounded-xl border shadow-lg backdrop-blur-sm ${
-                entry.type === "world"
-                  ? "bg-gradient-to-r from-amber-900/70 to-orange-900/70 border-amber-700/80"
-                  : entry.type === "action"
-                    ? "bg-gradient-to-r from-blue-900/70 to-cyan-900/70 border-blue-700/80"
-                    : entry.type === "roll"
-                      ? "bg-gradient-to-r from-purple-900/70 to-indigo-900/70 border-purple-700/80"
-                      : entry.type === "event"
-                        ? "bg-gradient-to-r from-yellow-900/70 to-amber-900/70 border-yellow-700/80"
-                        : "bg-gradient-to-r from-emerald-900/70 to-teal-900/70 border-emerald-700/80"
-              }`}>
-              <div className="flex justify-between items-start mb-2">
-                <span
-                  className={`text-xs font-bold uppercase tracking-wider ${
-                    entry.type === "world"
-                      ? "text-amber-300"
-                      : entry.type === "action"
-                        ? "text-blue-300"
-                        : entry.type === "roll"
-                          ? "text-purple-300"
-                          : entry.type === "event"
-                            ? "text-yellow-300"
-                            : "text-emerald-300"
-                  }`}>
-                  {entry.type === "world"
-                    ? "🌍 World Description"
+              className={`flex ${entry.type === "action" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`p-4 rounded-xl border shadow-lg backdrop-blur-sm max-w-[80%] ${
+                  entry.type === "world"
+                    ? "bg-gradient-to-r from-amber-900/70 to-orange-900/70 border-amber-700/80"
                     : entry.type === "action"
-                      ? "⚡ Your Action"
+                      ? "bg-gradient-to-r from-blue-900/70 to-cyan-900/70 border-blue-700/80"
                       : entry.type === "roll"
-                        ? "🎲 Stat Roll"
+                        ? "bg-gradient-to-r from-purple-900/70 to-indigo-900/70 border-purple-700/80"
                         : entry.type === "event"
-                          ? "🌟 World Event"
-                          : "🎲 Result"}
-                </span>
-                <span className="text-xs text-gray-500">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                          ? "bg-gradient-to-r from-yellow-900/70 to-amber-900/70 border-yellow-700/80"
+                          : "bg-gradient-to-r from-emerald-900/70 to-teal-900/70 border-emerald-700/80"
+                }`}>
+                <div className="flex justify-between items-start mb-2">
+                  <span
+                    className={`text-xs font-bold uppercase tracking-wider ${
+                      entry.type === "world"
+                        ? "text-amber-300"
+                        : entry.type === "action"
+                          ? "text-blue-300"
+                          : entry.type === "roll"
+                            ? "text-purple-300"
+                            : entry.type === "event"
+                              ? "text-yellow-300"
+                              : "text-emerald-300"
+                    }`}>
+                    {entry.type === "world"
+                      ? "🌍 World Description"
+                      : entry.type === "action"
+                        ? "⚡ Your Action"
+                        : entry.type === "roll"
+                          ? "🎲 Stat Roll"
+                          : entry.type === "event"
+                            ? "🌟 World Event"
+                            : "🎲 Result"}
+                  </span>
+                  <span className="text-xs text-gray-500">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <p className="text-sm text-gray-200">{entry.type === "event" ? `🌟 ${entry.content}` : entry.content}</p>
               </div>
-              <p className="text-sm text-gray-200">{entry.type === "event" ? `🌟 ${entry.content}` : entry.content}</p>
             </div>
           ))}
           {isProcessingAction && (
