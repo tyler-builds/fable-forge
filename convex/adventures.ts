@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { authComponent } from "./auth";
 import OpenAI from "openai";
 
@@ -220,7 +221,7 @@ export const createAdventure = action({
       cha: v.number(),
     }),
   },
-  handler: async (ctx, args): Promise<string> => {
+  handler: async (ctx, args): Promise<Id<"adventures">> => {
     // Generate both world description and title in a single OpenAI call
     const systemPrompt = `You are a Dungeon Master. Create a fantasy adventure for a ${args.playerClass} character.
 

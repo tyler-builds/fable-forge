@@ -27,7 +27,8 @@ export function getDndDmSchema(includeEvents: boolean = false) {
         },
         statAdjustment: { type: "boolean" },
         statToAdjust: { type: "string", enum: ["hp", "mp", "str", "dex", "con", "int", "wis", "cha"] },
-        adjustmentAmount: { type: "integer" }
+        adjustmentAmount: { type: "integer" },
+        sceneDescription: { type: "string" }
     };
 
     // Only add event-related properties if we want events

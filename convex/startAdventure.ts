@@ -77,7 +77,7 @@ export const takeTurn = action({
     const shouldTriggerEvent = shouldTriggerWorldEvent(actions, adventureData.turnCount);
 
     // Generate AI response using streamlined prompt and JSON schema
-    const systemPrompt = `You are a Dungeon Master. Generate the outcome of the player's action. Be creative, engaging, and include potential consequences or new opportunities. Keep responses concise but vivid (2-3 sentences max).${shouldTriggerEvent ? ' Include a proactive world event to make the story feel alive.' : ''}`;
+    const systemPrompt = `You are a Dungeon Master. Generate the outcome of the player's action. Be creative, engaging, and include potential consequences or new opportunities. Keep responses concise but vivid (2-3 sentences max).${shouldTriggerEvent ? ' Include a proactive world event to make the story feel alive.' : ''} Always include a brief scene description (2-4 words) of the current location/environment.`;
 
     const userPrompt = `Player Character: ${adventureData.characterClass} with stats ${JSON.stringify(adventureData.currentStats)}
 
@@ -169,6 +169,22 @@ Generate the outcome of this action considering the player's stats, class abilit
         adjustmentAmount: parsed.adjustmentAmount
       });
     }
+
+    // Handle scene changes for dynamic backgrounds
+    if (parsed.sceneDescription) {
+      try {
+        // Scene change detection for dynamic backgrounds
+        await ctx.runAction(api.backgrounds.handleSceneChange, {
+          adventureId: params.adventureId,
+          sceneDescription: parsed.sceneDescription
+        });
+        console.log("Scene change processed:", parsed.sceneDescription);
+      } catch (error) {
+        console.error("Failed to handle scene change:", error);
+        // Don't fail the entire turn if background generation fails
+      }
+    }
+    
     console.timeEnd("takeTurn");
     // Return minimal response - frontend will get updates via convex queries
     return {

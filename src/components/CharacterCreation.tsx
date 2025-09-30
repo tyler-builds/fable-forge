@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useAction, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 interface CharacterCreationProps {
   onReturnToDashboard: () => void;
-  onAdventureCreated: (adventureId: string) => void;
+  onAdventureCreated: (adventureId: Id<"adventures">) => void;
 }
 
 export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: CharacterCreationProps) {

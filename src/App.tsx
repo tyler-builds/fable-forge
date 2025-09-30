@@ -9,6 +9,7 @@ import { AuthGate } from "./components/AuthGate";
 import { CharacterCreation } from "./components/CharacterCreation";
 import { CharacterStats } from "./components/CharacterStats";
 import { authClient } from "./lib/auth-client";
+import { useAdventureBackground, useBackgroundStyle, useBackgroundOverlay } from "./hooks/useAdventureBackground";
 
 export default function App() {
   return (
@@ -27,6 +28,11 @@ function Content() {
 
   const [currentView, setCurrentView] = useState<AppView>("dashboard");
   const [currentAdventureId, setCurrentAdventureId] = useState<Id<"adventures"> | null>(null);
+
+  // Dynamic background system
+  const background = useAdventureBackground(currentAdventureId);
+  const backgroundStyle = useBackgroundStyle(background.backgroundUrl);
+  const overlayStyle = useBackgroundOverlay(background.hasBackground);
 
   const deleteAdventure = useMutation(api.adventures.deleteAdventure);
   const getAdventure = useQuery(
@@ -157,33 +163,40 @@ function Content() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
-      <CharacterStats
-        adventure={getAdventure?.adventure}
-        inventory={getAdventure?.inventory || []}
-        glossary={getAdventure?.glossary || []}
-        onReturnToDashboard={handleReturnToDashboard}
-        onSignOut={() => signOut()}
-        isLoading={!getAdventure}
-      />
+    <div className="flex h-screen" style={backgroundStyle}>
+      {/* Background overlay for readability */}
+      <div className="absolute inset-0 z-0" style={overlayStyle} />
 
-      <div className="flex-1 flex flex-col">
-        <AdventureLog
-          ref={adventureLogRef}
-          actions={getAdventure?.actions}
-          isProcessingAction={isProcessingAction}
+      {/* Content layer */}
+      <div className="relative z-10 flex w-full h-full">
+        <CharacterStats
+          adventure={getAdventure?.adventure}
+          inventory={getAdventure?.inventory || []}
+          glossary={getAdventure?.glossary || []}
+          onReturnToDashboard={handleReturnToDashboard}
+          onSignOut={() => signOut()}
           isLoading={!getAdventure}
         />
 
-        <ActionInput
-          playerInput={playerInput}
-          isProcessingAction={isProcessingAction}
-          onInputChange={setPlayerInput}
-          onTakeTurn={handleTakeTurn}
-          activeEvent={getActiveEvent?.eventText || null}
-          eventOptions={getActiveEvent?.eventOptions || null}
-          onEventChoice={handleEventChoice}
-        />
+        <div className="flex-1 flex flex-col">
+          <AdventureLog
+            ref={adventureLogRef}
+            actions={getAdventure?.actions}
+            isProcessingAction={isProcessingAction}
+            isLoading={!getAdventure}
+            hasBackground={background.hasBackground}
+          />
+
+          <ActionInput
+            playerInput={playerInput}
+            isProcessingAction={isProcessingAction}
+            onInputChange={setPlayerInput}
+            onTakeTurn={handleTakeTurn}
+            activeEvent={getActiveEvent?.eventText || null}
+            eventOptions={getActiveEvent?.eventOptions || null}
+            onEventChoice={handleEventChoice}
+          />
+        </div>
       </div>
     </div>
   );

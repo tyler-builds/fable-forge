@@ -13,13 +13,16 @@ interface AdventureLogProps {
   actions?: AdventureAction[];
   isProcessingAction: boolean;
   isLoading?: boolean;
+  hasBackground?: boolean;
 }
 
 export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
-  ({ actions, isProcessingAction, isLoading }, ref) => {
+  ({ actions, isProcessingAction, isLoading, hasBackground = false }, ref) => {
     if (isLoading || !actions) {
       return (
-        <div ref={ref} className="flex-1 bg-gradient-to-b from-gray-900 to-slate-800 p-4 overflow-y-auto">
+        <div
+          ref={ref}
+          className={`flex-1 p-4 overflow-y-auto ${hasBackground ? "" : "bg-gradient-to-b from-gray-900 to-slate-800"}`}>
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <div className="w-8 h-8 border-4 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -31,21 +34,23 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
     }
 
     return (
-      <div ref={ref} className="flex-1 bg-gradient-to-b from-gray-900 to-slate-800 p-4 overflow-y-auto">
+      <div
+        ref={ref}
+        className={`flex-1 p-4 overflow-y-auto ${hasBackground ? "" : "bg-gradient-to-b from-gray-900 to-slate-800"}`}>
         <div className="max-w-4xl mx-auto space-y-4">
           {actions.map((entry) => (
             <div
               key={entry._id}
-              className={`p-4 rounded-xl border shadow-lg ${
+              className={`p-4 rounded-xl border shadow-lg backdrop-blur-sm ${
                 entry.type === "world"
-                  ? "bg-gradient-to-r from-amber-900 to-orange-900 border-amber-700"
+                  ? "bg-gradient-to-r from-amber-900/70 to-orange-900/70 border-amber-700/80"
                   : entry.type === "action"
-                    ? "bg-gradient-to-r from-blue-900 to-cyan-900 border-blue-700"
+                    ? "bg-gradient-to-r from-blue-900/70 to-cyan-900/70 border-blue-700/80"
                     : entry.type === "roll"
-                      ? "bg-gradient-to-r from-purple-900 to-indigo-900 border-purple-700"
+                      ? "bg-gradient-to-r from-purple-900/70 to-indigo-900/70 border-purple-700/80"
                       : entry.type === "event"
-                        ? "bg-gradient-to-r from-yellow-900 to-amber-900 border-yellow-700"
-                        : "bg-gradient-to-r from-emerald-900 to-teal-900 border-emerald-700"
+                        ? "bg-gradient-to-r from-yellow-900/70 to-amber-900/70 border-yellow-700/80"
+                        : "bg-gradient-to-r from-emerald-900/70 to-teal-900/70 border-emerald-700/80"
               }`}>
               <div className="flex justify-between items-start mb-2">
                 <span
@@ -76,7 +81,7 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
             </div>
           ))}
           {isProcessingAction && (
-            <div className="p-4 rounded-xl border shadow-lg bg-gradient-to-r from-emerald-900 to-teal-900 border-emerald-700">
+            <div className="p-4 rounded-xl border shadow-lg backdrop-blur-sm bg-gradient-to-r from-emerald-900/70 to-teal-900/70 border-emerald-700/80">
               <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">🎲 Result</span>
                 <span className="text-xs text-gray-500">{new Date().toLocaleTimeString()}</span>

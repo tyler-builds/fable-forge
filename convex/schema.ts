@@ -32,7 +32,8 @@ export default defineSchema({
     createdAt: v.number(),
     turnCount: v.number(),
     summary: v.optional(v.string()), // AI-generated adventure summary
-    deletedAt: v.optional(v.number()) // Soft delete timestamp
+    deletedAt: v.optional(v.number()), // Soft delete timestamp
+    currentSceneHash: v.optional(v.string()), // Current scene for background tracking
   }).index("by_user", ["userId"]).index("by_status", ["userId", "status"]),
 
   adventureActions: defineTable({
@@ -57,4 +58,19 @@ export default defineSchema({
     term: v.string(),
     definition: v.string()
   }).index("by_adventure", ["adventureId"]),
+
+  sceneBackgrounds: defineTable({
+    sceneHash: v.string(), // Hash of normalized scene keywords
+    sceneKeywords: v.array(v.string()), // Normalized keywords for debugging
+    sceneCategory: v.string(), // Semantic category (e.g., "forest_outdoor_dark")
+    imageStorageId: v.id("_storage"), // Convex file storage ID
+    imageUrl: v.string(), // Public URL for the image
+    imagePrompt: v.string(), // image generation prompt used
+    createdAt: v.number(),
+    usageCount: v.number(), // Track reuse across all adventures
+    lastUsedAt: v.number()
+  }).index("by_scene_hash", ["sceneHash"])
+    .index("by_category", ["sceneCategory"])
+    .index("by_usage", ["usageCount"])
+    .index("by_last_used", ["lastUsedAt"]),
 });

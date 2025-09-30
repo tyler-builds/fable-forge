@@ -10,8 +10,11 @@
 
 import type * as adventures from "../adventures.js";
 import type * as auth from "../auth.js";
+import type * as backgroundMutations from "../backgroundMutations.js";
+import type * as backgrounds from "../backgrounds.js";
 import type * as dmSchema from "../dmSchema.js";
 import type * as http from "../http.js";
+import type * as sceneUtils from "../sceneUtils.js";
 import type * as startAdventure from "../startAdventure.js";
 
 import type {
@@ -31,8 +34,11 @@ import type {
 declare const fullApi: ApiFromModules<{
   adventures: typeof adventures;
   auth: typeof auth;
+  backgroundMutations: typeof backgroundMutations;
+  backgrounds: typeof backgrounds;
   dmSchema: typeof dmSchema;
   http: typeof http;
+  sceneUtils: typeof sceneUtils;
   startAdventure: typeof startAdventure;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
