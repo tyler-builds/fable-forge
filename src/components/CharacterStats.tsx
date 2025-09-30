@@ -4,6 +4,16 @@ import { GlossaryPanel } from "./GlossaryPanel";
 
 interface Adventure {
   characterClass: "warrior" | "mage";
+  characterStats: {
+    hp: number;
+    mp: number;
+    str: number;
+    dex: number;
+    con: number;
+    int: number;
+    wis: number;
+    cha: number;
+  };
   currentStats: {
     hp: number;
     mp: number;
@@ -119,15 +129,37 @@ export function CharacterStats({
 
         <div className="bg-gradient-to-r from-gray-800 to-slate-800 p-3 rounded-lg border border-gray-600">
           <h4 className="font-semibold mb-2">Stats</h4>
+
+          {/* HP Bar */}
+          <div className="mb-3">
+            <div className="flex justify-between text-xs mb-1">
+              <span>HP</span>
+              <span className="font-mono">{adventure.currentStats.hp} / {adventure.characterStats.hp}</span>
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-2.5">
+              <div
+                className="bg-gradient-to-r from-red-600 to-red-500 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${(adventure.currentStats.hp / adventure.characterStats.hp) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* MP Bar */}
+          <div className="mb-3">
+            <div className="flex justify-between text-xs mb-1">
+              <span>MP</span>
+              <span className="font-mono">{adventure.currentStats.mp} / {adventure.characterStats.mp}</span>
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-2.5">
+              <div
+                className="bg-gradient-to-r from-blue-600 to-blue-500 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${(adventure.currentStats.mp / adventure.characterStats.mp) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Other Stats */}
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span>HP:</span>
-              <span className="font-mono">{adventure.currentStats.hp}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>MP:</span>
-              <span className="font-mono">{adventure.currentStats.mp}</span>
-            </div>
             <div className="flex justify-between">
               <span>STR:</span>
               <span className="font-mono">{adventure.currentStats.str}</span>
