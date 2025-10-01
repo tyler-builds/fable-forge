@@ -4,7 +4,7 @@ import { GlossaryPanel } from "./GlossaryPanel";
 import { InventoryPanel } from "./InventoryPanel";
 
 interface Adventure {
-  characterClass: "warrior" | "mage";
+  characterClass: "warrior" | "mage" | "rogue";
   characterStats: {
     hp: number;
     mp: number;
