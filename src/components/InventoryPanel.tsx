@@ -1,3 +1,5 @@
+import { Backpack } from "lucide-react";
+
 interface InventoryItem {
   itemName: string;
   quantity: number;
@@ -12,7 +14,9 @@ interface InventoryPanelProps {
 export function InventoryPanel({ inventory }: InventoryPanelProps) {
   return (
     <div className="bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900 dark:to-teal-900 p-3 rounded-lg border border-emerald-300 dark:border-emerald-600 flex-1">
-      <h4 className="font-semibold mb-2 text-emerald-800 dark:text-emerald-200">🎒 Inventory</h4>
+      <h4 className="font-semibold mb-2 text-emerald-800 dark:text-emerald-200 flex items-center gap-2">
+        <Backpack size={18} /> Inventory
+      </h4>
       <div className="overflow-y-auto space-y-2" style={{ maxHeight: "calc(50vh - 200px)" }}>
         {inventory.length === 0 ? (
           <p className="text-xs text-gray-500 dark:text-gray-400">Your inventory is empty...</p>

@@ -21,8 +21,6 @@ export const getRandomPortrait = query({
     const portrait = portraits[randomIndex];
     const imageUrl = await ctx.storage.getUrl(portrait.imageStorageId);
 
-    console.log("getRandomPortrait - storageId:", portrait.imageStorageId, "url:", imageUrl);
-
     return {
       _id: portrait._id,
       characterClass: portrait.characterClass,

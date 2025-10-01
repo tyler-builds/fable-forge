@@ -1,3 +1,5 @@
+import { Zap } from "lucide-react";
+
 interface ActionInputProps {
   playerInput: string;
   isProcessingAction: boolean;
@@ -78,7 +80,9 @@ export function ActionInput({
                 Processing...
               </div>
             ) : (
-              "⚡ Act"
+              <div className="flex items-center gap-2">
+                <Zap size={18} /> Act
+              </div>
             )}
           </button>
         </div>

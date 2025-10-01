@@ -1,8 +1,10 @@
 import { useQuery } from "convex/react";
+import { Sparkles, Swords, LogOut } from "lucide-react";
 import { useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { AdventureCard } from "./AdventureCard";
+import { authClient } from "@/lib/auth-client";
 
 interface AdventureDashboardProps {
   onStartNewAdventure: () => void;
@@ -36,12 +38,29 @@ export function AdventureDashboard({
     return adventure.status === filter;
   });
 
+  const handleSignOut = async () => {
+    await authClient.signOut();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
       <div className="max-w-6xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors flex items-center gap-2"
+            title="Sign Out">
+            <LogOut size={18} /> Sign Out
+          </button>
+        </div>
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            ⚔️ Adventure Hall ⚔️
+          <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-3">
+            <Swords size={36} className="text-blue-400" />
+            <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              Adventure Hall
+            </span>
+            <Swords size={36} className="text-purple-500" />
           </h1>
           <p className="text-blue-300">Continue your quests or forge new legends</p>
         </div>
@@ -67,8 +86,8 @@ export function AdventureDashboard({
           <button
             type="button"
             onClick={onStartNewAdventure}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold px-6 py-3 rounded-lg border border-blue-500 shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]">
-            ✨ New Adventure
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold px-6 py-3 rounded-lg border border-blue-500 shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2">
+            <Sparkles size={20} /> New Adventure
           </button>
         </div>
 

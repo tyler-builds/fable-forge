@@ -1,4 +1,5 @@
 import { useAction, useQuery } from "convex/react";
+import { Swords } from "lucide-react";
 import { useState } from "react";
 import { getClassColor, getClassIcon, statNames } from "@/utils/helpers";
 import { api } from "../../convex/_generated/api";
@@ -85,8 +86,8 @@ export function CharacterCreation({ onReturnToDashboard, onAdventureCreated }: C
       <div className="h-full max-h-screen overflow-y-auto">
         <div className="bg-gradient-to-b from-gray-800 to-slate-900 p-8 rounded-xl shadow-2xl max-w-5xl w-full border border-gray-600 mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              ⚔️ Fable Forge ⚔️
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent flex items-center gap-2">
+              <Swords size={28} /> Fable Forge <Swords size={28} />
             </h1>
             <p className="text-sm text-blue-300">Welcome, {currentUser?.email?.split("@")[0] || "Adventurer"}!</p>
           </div>

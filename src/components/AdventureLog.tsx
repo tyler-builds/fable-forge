@@ -1,3 +1,4 @@
+import { Dice6, Globe, Sparkles, Target, Zap } from "lucide-react";
 import { forwardRef } from "react";
 import type { Id } from "../../convex/_generated/dataModel";
 
@@ -39,9 +40,7 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
         className={`flex-1 p-4 overflow-y-auto ${hasBackground ? "" : "bg-gradient-to-b from-gray-900 to-slate-800"}`}>
         <div className="max-w-4xl mx-auto space-y-4">
           {actions.map((entry) => (
-            <div
-              key={entry._id}
-              className={`flex ${entry.type === "action" ? "justify-end" : "justify-start"}`}>
+            <div key={entry._id} className={`flex ${entry.type === "action" ? "justify-end" : "justify-start"}`}>
               <div
                 className={`p-4 rounded-xl border shadow-lg backdrop-blur-sm max-w-[80%] ${
                   entry.type === "world"
@@ -56,7 +55,7 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
                 }`}>
                 <div className="flex justify-between items-start mb-2">
                   <span
-                    className={`text-xs font-bold uppercase tracking-wider ${
+                    className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
                       entry.type === "world"
                         ? "text-amber-300"
                         : entry.type === "action"
@@ -67,31 +66,45 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
                               ? "text-yellow-300"
                               : "text-emerald-300"
                     }`}>
-                    {entry.type === "world"
-                      ? "🌍 World Description"
-                      : entry.type === "action"
-                        ? "⚡ Your Action"
-                        : entry.type === "roll"
-                          ? "🎲 Stat Roll"
-                          : entry.type === "event"
-                            ? "🌟 World Event"
-                            : "🎲 Result"}
+                    {entry.type === "world" ? (
+                      <>
+                        <Globe size={14} /> World Description
+                      </>
+                    ) : entry.type === "action" ? (
+                      <>
+                        <Zap size={14} /> Your Action
+                      </>
+                    ) : entry.type === "roll" ? (
+                      <>
+                        <Dice6 size={14} /> Stat Roll
+                      </>
+                    ) : entry.type === "event" ? (
+                      <>
+                        <Sparkles size={14} /> World Event
+                      </>
+                    ) : (
+                      <>
+                        <Target size={14} /> Result
+                      </>
+                    )}
                   </span>
                   <span className="text-xs text-gray-500">{new Date(entry.timestamp).toLocaleTimeString()}</span>
                 </div>
-                <p className="text-sm text-gray-200">{entry.type === "event" ? `🌟 ${entry.content}` : entry.content}</p>
+                <p className="text-sm text-gray-200">{entry.content}</p>
               </div>
             </div>
           ))}
           {isProcessingAction && (
             <div className="p-4 rounded-xl border shadow-lg backdrop-blur-sm bg-gradient-to-r from-emerald-900/70 to-teal-900/70 border-emerald-700/80">
               <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">🎲 Result</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                  <Target size={14} /> Result
+                </span>
                 <span className="text-xs text-gray-500">{new Date().toLocaleTimeString()}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-sm text-gray-200">🔮 Processing your action...</p>
+                <p className="text-sm text-gray-200">Processing your action...</p>
               </div>
             </div>
           )}

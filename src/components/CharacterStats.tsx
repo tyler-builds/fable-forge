@@ -1,3 +1,4 @@
+import { Book, ClipboardList, LogOut, X } from "lucide-react";
 import { useState } from "react";
 import { getClassColor, getClassIcon } from "@/utils/helpers";
 import { GlossaryPanel } from "./GlossaryPanel";
@@ -78,29 +79,28 @@ export function CharacterStats({
   return (
     <div className="w-80 bg-gradient-to-b from-gray-800 to-slate-900 border-r border-gray-600 p-4">
       <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-bold text-blue-300">Character</h2>
+        <div className="flex justify-between items-center justify-end">
           <div className="flex gap-1">
             <button
               type="button"
               onClick={() => setIsGlossaryOpen(true)}
               className="text-xs px-2 py-1 rounded bg-purple-700 hover:bg-purple-600 text-purple-200 transition-colors"
               title="Glossary">
-              📖
+              <Book size={16} />
             </button>
             <button
               type="button"
               onClick={onReturnToDashboard}
               className="text-xs px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-blue-200 transition-colors"
               title="Return to Adventures">
-              📋
+              <ClipboardList size={16} />
             </button>
             <button
               type="button"
               onClick={onSignOut}
               className="text-xs px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
               title="Sign Out">
-              🚪
+              <LogOut size={16} />
             </button>
           </div>
         </div>
@@ -216,12 +216,14 @@ export function CharacterStats({
             className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4"
             onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-purple-300">📖 Glossary</h3>
+              <h3 className="text-xl font-bold text-purple-300 flex items-center gap-2">
+                <Book size={24} /> Glossary
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsGlossaryOpen(false)}
-                className="text-gray-400 hover:text-gray-200 text-2xl">
-                x
+                className="text-gray-400 hover:text-gray-200">
+                <X size={24} />
               </button>
             </div>
             <GlossaryPanel glossary={glossary} />
