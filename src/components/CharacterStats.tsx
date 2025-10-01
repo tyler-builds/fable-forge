@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getClassIcon } from "@/utils/helpers";
+import { getClassColor, getClassIcon } from "@/utils/helpers";
 import { GlossaryPanel } from "./GlossaryPanel";
 import { InventoryPanel } from "./InventoryPanel";
 
@@ -107,9 +107,7 @@ export function CharacterStats({
         {characterPortraitUrl && (
           <div className="flex justify-center">
             <div
-              className={`rounded-full overflow-hidden w-32 h-32 border-4 ${
-                adventure.characterClass === "warrior" ? "border-red-500" : "border-purple-500"
-              }`}>
+              className={`rounded-full overflow-hidden w-32 h-32 border-4 ${getClassColor(adventure.characterClass)}`}>
               <img
                 src={characterPortraitUrl}
                 alt={`${adventure.characterClass} portrait`}
@@ -123,7 +121,9 @@ export function CharacterStats({
           className={`p-3 rounded-lg border ${
             adventure.characterClass === "warrior"
               ? "bg-gradient-to-r from-red-900 to-red-800 border-red-700"
-              : "bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700"
+              : adventure.characterClass === "mage"
+                ? "bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700"
+                : "bg-gradient-to-r from-green-900 to-emerald-800 border-green-700"
           }`}>
           <h3
             className={`font-semibold capitalize ${

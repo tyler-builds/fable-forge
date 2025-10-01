@@ -19,3 +19,16 @@ export function getClassIcon(characterClass: string) {
       return "❓";
   }
 };
+
+export function getClassColor(characterClass: string) {
+  switch (characterClass) {
+    case "warrior":
+      return "border-red-500";
+    case "mage":
+      return "border-purple-500";
+    case "rogue":
+      return "border-green-500";
+    default:
+      return "border-gray-500";
+  }
+};
