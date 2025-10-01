@@ -56,7 +56,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
+          <label htmlFor="email" className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
             <Mail size={16} /> Email Address
           </label>
           <input
@@ -72,7 +72,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
+          <label htmlFor="password" className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
             <Key size={16} /> Password
           </label>
           <input

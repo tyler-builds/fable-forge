@@ -68,9 +68,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         )}
 
         <div>
-          <label
-            htmlFor="signup-email"
-            className="block text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
+          <label htmlFor="signup-email" className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
             <Mail size={16} /> Email Address
           </label>
           <input
@@ -86,9 +84,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         </div>
 
         <div>
-          <label
-            htmlFor="signup-password"
-            className="block text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
+          <label htmlFor="signup-password" className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
             <Key size={16} /> Password
           </label>
           <input
@@ -107,7 +103,7 @@ export function SignupForm({ onSwitchToLogin }: SignupFormProps) {
         <div>
           <label
             htmlFor="confirm-password"
-            className="block text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
+            className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-2">
             <Lock size={16} /> Confirm Password
           </label>
           <input

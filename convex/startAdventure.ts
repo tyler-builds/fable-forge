@@ -81,6 +81,8 @@ IMPORTANT: The "outcome" field should ONLY contain the narrative result of the p
 
     const userPrompt = `Player Character: ${adventureData.characterClass} with stats ${JSON.stringify(adventureData.currentStats)}
 
+Current Gold: ${adventureData.gold}
+
 Current Inventory: ${JSON.stringify(inventory.map(item => ({ name: item.itemName, quantity: item.quantity, description: item.description })))}
 
 Current Situation: ${adventureData.worldDescription}
@@ -90,7 +92,7 @@ ${recentHistory}
 
 Player Action: ${params.userPrompt}${rollContext}
 
-Generate the outcome of this action considering the player's stats, class abilities, and available inventory.`;
+Generate the outcome of this action considering the player's stats, class abilities, and available inventory. If the player is trying to buy something or pay someone, use goldAdjustment (negative for spending, positive for earning).`;
     console.time("generateTakeTurnResponse");
     const completion = await openai.chat.completions.create({
       model: "gpt-5-mini",
@@ -99,7 +101,7 @@ Generate the outcome of this action considering the player's stats, class abilit
         json_schema: getDndDmSchema(shouldTriggerEvent)
       },
       reasoning_effort: "minimal",
-      max_completion_tokens: 600,
+      max_completion_tokens: 1000,
       messages: [
         {
           role: "system",
@@ -167,6 +169,14 @@ Generate the outcome of this action considering the player's stats, class abilit
         adventureId: params.adventureId,
         statToAdjust: parsed.statToAdjust,
         adjustmentAmount: parsed.adjustmentAmount
+      });
+    }
+
+    // Handle gold adjustments
+    if (parsed.goldAdjustment && parsed.goldAdjustment !== 0) {
+      await ctx.runMutation(api.adventures.adjustGold, {
+        adventureId: params.adventureId,
+        goldAdjustment: parsed.goldAdjustment
       });
     }
 

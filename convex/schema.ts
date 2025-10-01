@@ -8,6 +8,7 @@ export default defineSchema({
     characterClass: v.union(v.literal("warrior"), v.literal("mage"), v.literal("rogue")),
     level: v.number(), // Character level, starts at 1
     currentXP: v.number(), // Current XP points
+    gold: v.number(), // Player's gold, starts at 100
     characterStats: v.object({
       hp: v.number(),
       mp: v.number(),

@@ -28,17 +28,18 @@ export function getDndDmSchema(includeEvents: boolean = false) {
         statAdjustment: { type: "boolean" },
         statToAdjust: { type: "string", enum: ["hp", "mp", "str", "dex", "con", "int", "wis", "cha"] },
         adjustmentAmount: { type: "integer" },
+        goldAdjustment: { type: "integer" },
         xpGrant: { type: "integer" },
         sceneDescription: { type: "string" }
     };
 
     // Only add event-related properties if we want events
-    const properties = includeEvents 
+    const properties = includeEvents
         ? {
             ...baseProperties,
             proactiveEvent: { type: "string" },
             eventOptions: { type: "array", items: { type: "string" } }
-          }
+        }
         : baseProperties;
 
     return {

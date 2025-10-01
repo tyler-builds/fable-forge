@@ -8,6 +8,7 @@ interface Adventure {
   characterClass: "warrior" | "mage" | "rogue";
   level: number;
   currentXP: number;
+  gold: number;
   characterStats: {
     hp: number;
     mp: number;
@@ -79,7 +80,7 @@ export function CharacterStats({
   return (
     <div className="w-80 bg-gradient-to-b from-gray-800 to-slate-900 border-r border-gray-600 p-4">
       <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-center justify-end">
+        <div className="flex items-center justify-end">
           <div className="flex gap-1">
             <button
               type="button"
@@ -205,7 +206,7 @@ export function CharacterStats({
           </div>
         </div>
 
-        <InventoryPanel inventory={inventory} />
+        <InventoryPanel inventory={inventory} gold={adventure.gold} />
       </div>
 
       {isGlossaryOpen && (

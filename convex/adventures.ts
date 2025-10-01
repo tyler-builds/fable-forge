@@ -191,6 +191,7 @@ export const createAdventureRecord = mutation({
       characterClass: args.characterClass,
       level: 1,
       currentXP: 0,
+      gold: 100,
       characterStats: args.characterStats,
       currentStats: { ...args.characterStats }, // Start with same stats
       worldDescription: args.worldDescription,
@@ -519,6 +520,32 @@ export const updateAdventureStats = mutation({
     });
 
     return currentStats;
+  },
+});
+
+export const adjustGold = mutation({
+  args: {
+    adventureId: v.id("adventures"),
+    goldAdjustment: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    const adventure = await ctx.db.get(args.adventureId);
+    if (!adventure || adventure.userId !== user._id) {
+      throw new Error("Adventure not found or access denied");
+    }
+
+    const newGold = Math.max(0, adventure.gold + args.goldAdjustment);
+
+    await ctx.db.patch(args.adventureId, {
+      gold: newGold,
+    });
+
+    return newGold;
   },
 });
 
