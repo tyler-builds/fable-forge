@@ -5,6 +5,8 @@ import { InventoryPanel } from "./InventoryPanel";
 
 interface Adventure {
   characterClass: "warrior" | "mage" | "rogue";
+  level: number;
+  currentXP: number;
   characterStats: {
     hp: number;
     mp: number;
@@ -77,7 +79,7 @@ export function CharacterStats({
     <div className="w-80 bg-gradient-to-b from-gray-800 to-slate-900 border-r border-gray-600 p-4">
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-bold text-blue-300">⚔️ Character</h2>
+          <h2 className="text-lg font-bold text-blue-300">Character</h2>
           <div className="flex gap-1">
             <button
               type="button"
@@ -127,12 +129,17 @@ export function CharacterStats({
           }`}>
           <h3
             className={`font-semibold capitalize ${
-              adventure.characterClass === "warrior" ? "text-red-200" : "text-purple-200"
+              adventure.characterClass === "warrior"
+                ? "text-red-200"
+                : adventure.characterClass === "mage"
+                  ? "text-purple-200"
+                  : "text-green-200"
             }`}>
             {getClassIcon(adventure.characterClass)} {adventure.characterClass}
           </h3>
-          <p className={`text-xs ${adventure.characterClass === "warrior" ? "text-red-300" : "text-purple-300"}`}>
-            Level 1
+          <p
+            className={`text-xs ${adventure.characterClass === "warrior" ? "text-red-300" : adventure.characterClass === "mage" ? "text-purple-300" : "text-green-300"}`}>
+            Level {adventure.level}
           </p>
         </div>
 

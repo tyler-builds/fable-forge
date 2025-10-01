@@ -11,6 +11,7 @@ interface Adventure {
   createdAt: number;
   summary?: string;
   worldDescription: string;
+  level: number;
 }
 
 interface AdventureCardProps {
@@ -56,6 +57,8 @@ export function AdventureCard({ adventure, onContinueAdventure, onDeleteAdventur
             </span>
             <span className="text-gray-500">•</span>
             <span className="text-gray-400">Turn {adventure.turnCount}</span>
+            <span className="text-gray-500">•</span>
+            <span className="text-gray-400">Level {adventure.level}</span>
           </div>
         </div>
 

@@ -6,6 +6,8 @@ export default defineSchema({
     userId: v.string(), // Links to Better Auth user table
     title: v.string(), // Auto-generated or user-defined
     characterClass: v.union(v.literal("warrior"), v.literal("mage"), v.literal("rogue")),
+    level: v.number(), // Character level, starts at 1
+    currentXP: v.number(), // Current XP points
     characterStats: v.object({
       hp: v.number(),
       mp: v.number(),

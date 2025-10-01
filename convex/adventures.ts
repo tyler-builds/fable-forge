@@ -5,6 +5,7 @@ import type { Id } from "./_generated/dataModel";
 import { authComponent } from "./auth";
 import OpenAI from "openai";
 import { validatePointBuyStats, validateDerivedStats } from "./pointBuyValidation";
+import { processLevelUp, applyStatIncreases } from "./levelingSystem";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -188,6 +189,8 @@ export const createAdventureRecord = mutation({
       userId: user._id,
       title: args.title,
       characterClass: args.characterClass,
+      level: 1,
+      currentXP: 0,
       characterStats: args.characterStats,
       currentStats: { ...args.characterStats }, // Start with same stats
       worldDescription: args.worldDescription,
@@ -519,6 +522,64 @@ export const updateAdventureStats = mutation({
   },
 });
 
+export const grantXP = mutation({
+  args: {
+    adventureId: v.id("adventures"),
+    xpAmount: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
+
+    const adventure = await ctx.db.get(args.adventureId);
+    if (!adventure || adventure.userId !== user._id) {
+      throw new Error("Adventure not found or access denied");
+    }
+
+    // Process XP and check for level up
+    const levelUpResult = processLevelUp(
+      adventure.characterClass,
+      adventure.level,
+      adventure.currentXP,
+      args.xpAmount
+    );
+
+    if (levelUpResult.didLevelUp && levelUpResult.statIncreases) {
+      // Apply stat increases to both character and current stats
+      const newCharacterStats = applyStatIncreases(adventure.characterStats, levelUpResult.statIncreases);
+      const newCurrentStats = applyStatIncreases(adventure.currentStats, levelUpResult.statIncreases);
+
+      // Update adventure with level up
+      await ctx.db.patch(args.adventureId, {
+        level: levelUpResult.newLevel,
+        currentXP: levelUpResult.newXP,
+        characterStats: newCharacterStats,
+        currentStats: newCurrentStats,
+      });
+
+      // Log level up event
+      await ctx.db.insert("adventureActions", {
+        adventureId: args.adventureId,
+        type: "result",
+        content: `🎉 LEVEL UP! You are now level ${levelUpResult.newLevel}! Your stats have increased.`,
+        timestamp: Date.now(),
+        turnNumber: adventure.turnCount,
+      });
+
+      return { leveledUp: true, newLevel: levelUpResult.newLevel };
+    } else {
+      // Just update XP
+      await ctx.db.patch(args.adventureId, {
+        currentXP: levelUpResult.newXP,
+      });
+
+      return { leveledUp: false, newXP: levelUpResult.newXP };
+    }
+  },
+});
+
 export const deleteAdventure = mutation({
   args: {
     adventureId: v.id("adventures"),
@@ -537,6 +598,29 @@ export const deleteAdventure = mutation({
     await ctx.db.patch(args.adventureId, {
       deletedAt: Date.now(),
     });
+  },
+});
+
+// Migration: Add level and currentXP to existing adventures
+export const migrateLevelingFields = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const adventures = await ctx.db.query("adventures").collect();
+
+    let updatedCount = 0;
+
+    for (const adventure of adventures) {
+      // Only update if the fields don't exist
+      if (adventure.level === undefined || adventure.currentXP === undefined) {
+        await ctx.db.patch(adventure._id, {
+          level: 1,
+          currentXP: 0,
+        });
+        updatedCount++;
+      }
+    }
+
+    return { updatedCount, message: `Migration complete: Updated ${updatedCount} adventures` };
   },
 });
 

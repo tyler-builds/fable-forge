@@ -170,10 +170,18 @@ Generate the outcome of this action considering the player's stats, class abilit
       });
     }
 
+    // Handle XP grants and leveling
+    if (parsed.xpGrant && parsed.xpGrant > 0) {
+      await ctx.runMutation(api.adventures.grantXP, {
+        adventureId: params.adventureId,
+        xpAmount: parsed.xpGrant
+      });
+    }
+
     // Handle scene changes for dynamic backgrounds
     if (parsed.sceneDescription) {
       // Schedule background generation asynchronously so it doesn't block the UI
-      ctx.scheduler.runAfter(0, api.backgrounds.handleSceneChange, {
+      await ctx.scheduler.runAfter(0, api.backgrounds.handleSceneChange, {
         adventureId: params.adventureId,
         sceneDescription: parsed.sceneDescription
       });
@@ -214,8 +222,8 @@ async function getRollResultIfNeeded(playerAction: string, mostRecentResult: str
           `You are a fast D&D rules assistant. Decide if the player's action requires a d20 roll. If yes, choose stat and DC.
 
 DC Guidelines (5e standard):
-- Easy/Routine tasks: 10-12 (talking, simple climbing, basic search)
-- Medium difficulty: 13-15 (acrobatics, persuading, dodging)
+- Easy/Routine tasks: 6-10 (talking, simple climbing, basic search)
+- Medium difficulty: 10-15 (acrobatics, persuading, dodging)
 - Hard/Challenging: 16-20 (complex magic, difficult feats)
 - Very Hard: 21+ (nearly impossible tasks)
 

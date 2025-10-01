@@ -15,6 +15,8 @@ import type * as backgrounds from "../backgrounds.js";
 import type * as characterPortraits from "../characterPortraits.js";
 import type * as dmSchema from "../dmSchema.js";
 import type * as http from "../http.js";
+import type * as levelingSystem from "../levelingSystem.js";
+import type * as migrations_addLevelingFields from "../migrations/addLevelingFields.js";
 import type * as pointBuyValidation from "../pointBuyValidation.js";
 import type * as sceneUtils from "../sceneUtils.js";
 import type * as startAdventure from "../startAdventure.js";
@@ -41,6 +43,8 @@ declare const fullApi: ApiFromModules<{
   characterPortraits: typeof characterPortraits;
   dmSchema: typeof dmSchema;
   http: typeof http;
+  levelingSystem: typeof levelingSystem;
+  "migrations/addLevelingFields": typeof migrations_addLevelingFields;
   pointBuyValidation: typeof pointBuyValidation;
   sceneUtils: typeof sceneUtils;
   startAdventure: typeof startAdventure;

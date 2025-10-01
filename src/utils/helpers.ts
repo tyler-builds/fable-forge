@@ -34,3 +34,5 @@ export function getClassColor(characterClass: string) {
       return "border-gray-500";
   }
 };
+
+export const xpThreshold = (level: number) => Math.floor(100 * 1.5 ** (level - 1));

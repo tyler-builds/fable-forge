@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
 
 // Query: Find background by scene hash
@@ -38,8 +38,8 @@ export const getCurrentBackground = query({
   },
 });
 
-// Mutation: Create new background
-export const createBackground = mutation({
+// Internal mutation: Create new background (called from scheduled actions)
+export const createBackground = internalMutation({
   args: {
     sceneHash: v.string(),
     sceneKeywords: v.array(v.string()),
@@ -50,7 +50,7 @@ export const createBackground = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
-    
+
     return await ctx.db.insert("sceneBackgrounds", {
       sceneHash: args.sceneHash,
       sceneKeywords: args.sceneKeywords,
@@ -65,21 +65,16 @@ export const createBackground = mutation({
   },
 });
 
-// Mutation: Update adventure's current scene
-export const updateAdventureScene = mutation({
+// Internal mutation: Update adventure's current scene (called from scheduled actions)
+export const updateAdventureScene = internalMutation({
   args: {
     adventureId: v.id("adventures"),
     sceneHash: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await authComponent.getAuthUser(ctx);
-    if (!user) {
-      throw new Error("Not authenticated");
-    }
-
     const adventure = await ctx.db.get(args.adventureId);
-    if (!adventure || adventure.userId !== user._id || adventure.deletedAt) {
-      throw new Error("Adventure not found or access denied");
+    if (!adventure || adventure.deletedAt) {
+      throw new Error("Adventure not found");
     }
 
     await ctx.db.patch(args.adventureId, {
@@ -88,8 +83,8 @@ export const updateAdventureScene = mutation({
   },
 });
 
-// Mutation: Increment background usage
-export const incrementUsage = mutation({
+// Internal mutation: Increment background usage (called from scheduled actions)
+export const incrementUsage = internalMutation({
   args: { backgroundId: v.id("sceneBackgrounds") },
   handler: async (ctx, args) => {
     const background = await ctx.db.get(args.backgroundId);

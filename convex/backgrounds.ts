@@ -2,7 +2,7 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import OpenAI from "openai";
 import { createSceneHash, getSceneCategory, extractSceneKeywords, generateImagePrompt } from "./sceneUtils";
 
@@ -32,13 +32,13 @@ export const handleSceneChange = action({
     if (existingBackground) {
       console.log("Reusing existing background");
       // Update adventure's current scene
-      await ctx.runMutation(api.backgroundMutations.updateAdventureScene, {
+      await ctx.runMutation(internal.backgroundMutations.updateAdventureScene, {
         adventureId: args.adventureId,
         sceneHash,
       });
 
       // Track usage
-      await ctx.runMutation(api.backgroundMutations.incrementUsage, {
+      await ctx.runMutation(internal.backgroundMutations.incrementUsage, {
         backgroundId: existingBackground._id,
       });
     } else {
@@ -89,7 +89,7 @@ async function generateNewBackground(
     console.timeEnd("image_storage");
 
     // Save background to database
-    const backgroundId = await ctx.runMutation(api.backgroundMutations.createBackground, {
+    const backgroundId = await ctx.runMutation(internal.backgroundMutations.createBackground, {
       sceneHash,
       sceneKeywords: extractSceneKeywords(sceneDescription),
       sceneCategory,
@@ -99,7 +99,7 @@ async function generateNewBackground(
     });
 
     // Update adventure's current scene
-    await ctx.runMutation(api.backgroundMutations.updateAdventureScene, {
+    await ctx.runMutation(internal.backgroundMutations.updateAdventureScene, {
       adventureId,
       sceneHash,
     });

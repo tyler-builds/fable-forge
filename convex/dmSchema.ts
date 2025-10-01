@@ -28,6 +28,7 @@ export function getDndDmSchema(includeEvents: boolean = false) {
         statAdjustment: { type: "boolean" },
         statToAdjust: { type: "string", enum: ["hp", "mp", "str", "dex", "con", "int", "wis", "cha"] },
         adjustmentAmount: { type: "integer" },
+        xpGrant: { type: "integer" },
         sceneDescription: { type: "string" }
     };
 
