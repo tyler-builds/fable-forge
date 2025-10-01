@@ -42,7 +42,7 @@ export const AdventureLog = forwardRef<HTMLDivElement, AdventureLogProps>(
           {actions.map((entry) => (
             <div key={entry._id} className={`flex ${entry.type === "action" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`p-4 rounded-xl border shadow-lg backdrop-blur-sm max-w-[80%] ${
+                className={`p-4 rounded-xl border shadow-lg backdrop-blur-sm max-w-[80%]  min-w-[220px] ${
                   entry.type === "world"
                     ? "bg-gradient-to-r from-amber-900/70 to-orange-900/70 border-amber-700/80"
                     : entry.type === "action"
