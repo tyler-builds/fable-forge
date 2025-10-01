@@ -39,7 +39,7 @@ export function ActionInput({
             <div className="grid grid-cols-1 gap-2">
               {eventOptions.map((option, index) => (
                 <button
-                  key={index}
+                  key={option}
                   type="button"
                   className="text-left px-4 py-3 bg-gray-800 border border-yellow-600 rounded-lg hover:bg-gray-700 hover:border-yellow-500 text-gray-200 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => handleEventChoice(option)}

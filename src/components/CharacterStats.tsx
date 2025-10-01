@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { InventoryPanel } from "./InventoryPanel";
+import { getClassIcon } from "@/utils/helpers";
 import { GlossaryPanel } from "./GlossaryPanel";
+import { InventoryPanel } from "./InventoryPanel";
 
 interface Adventure {
   characterClass: "warrior" | "mage";
@@ -82,24 +83,21 @@ export function CharacterStats({
               type="button"
               onClick={() => setIsGlossaryOpen(true)}
               className="text-xs px-2 py-1 rounded bg-purple-700 hover:bg-purple-600 text-purple-200 transition-colors"
-              title="Glossary"
-            >
+              title="Glossary">
               📖
             </button>
             <button
               type="button"
               onClick={onReturnToDashboard}
               className="text-xs px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-blue-200 transition-colors"
-              title="Return to Adventures"
-            >
+              title="Return to Adventures">
               📋
             </button>
             <button
               type="button"
               onClick={onSignOut}
               className="text-xs px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
-              title="Sign Out"
-            >
+              title="Sign Out">
               🚪
             </button>
           </div>
@@ -108,11 +106,10 @@ export function CharacterStats({
         {/* Character Portrait */}
         {characterPortraitUrl && (
           <div className="flex justify-center">
-            <div className={`rounded-full overflow-hidden w-32 h-32 border-4 ${
-              adventure.characterClass === "warrior"
-                ? "border-red-500"
-                : "border-purple-500"
-            }`}>
+            <div
+              className={`rounded-full overflow-hidden w-32 h-32 border-4 ${
+                adventure.characterClass === "warrior" ? "border-red-500" : "border-purple-500"
+              }`}>
               <img
                 src={characterPortraitUrl}
                 alt={`${adventure.characterClass} portrait`}
@@ -123,25 +120,18 @@ export function CharacterStats({
         )}
 
         <div
-          className={`p-3 rounded-lg border ${adventure.characterClass === "warrior"
+          className={`p-3 rounded-lg border ${
+            adventure.characterClass === "warrior"
               ? "bg-gradient-to-r from-red-900 to-red-800 border-red-700"
               : "bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700"
-            }`}
-        >
+          }`}>
           <h3
-            className={`font-semibold capitalize ${adventure.characterClass === "warrior"
-                ? "text-red-200"
-                : "text-purple-200"
-              }`}
-          >
-            {adventure.characterClass === "warrior" ? "⚔️" : "🔮"} {adventure.characterClass}
+            className={`font-semibold capitalize ${
+              adventure.characterClass === "warrior" ? "text-red-200" : "text-purple-200"
+            }`}>
+            {getClassIcon(adventure.characterClass)} {adventure.characterClass}
           </h3>
-          <p
-            className={`text-xs ${adventure.characterClass === "warrior"
-                ? "text-red-300"
-                : "text-purple-300"
-              }`}
-          >
+          <p className={`text-xs ${adventure.characterClass === "warrior" ? "text-red-300" : "text-purple-300"}`}>
             Level 1
           </p>
         </div>
@@ -153,13 +143,14 @@ export function CharacterStats({
           <div className="mb-3">
             <div className="flex justify-between text-xs mb-1">
               <span>HP</span>
-              <span className="font-mono">{adventure.currentStats.hp} / {adventure.characterStats.hp}</span>
+              <span className="font-mono">
+                {adventure.currentStats.hp} / {adventure.characterStats.hp}
+              </span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2.5">
               <div
                 className="bg-gradient-to-r from-red-600 to-red-500 h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${(adventure.currentStats.hp / adventure.characterStats.hp) * 100}%` }}
-              ></div>
+                style={{ width: `${(adventure.currentStats.hp / adventure.characterStats.hp) * 100}%` }}></div>
             </div>
           </div>
 
@@ -167,13 +158,14 @@ export function CharacterStats({
           <div className="mb-3">
             <div className="flex justify-between text-xs mb-1">
               <span>MP</span>
-              <span className="font-mono">{adventure.currentStats.mp} / {adventure.characterStats.mp}</span>
+              <span className="font-mono">
+                {adventure.currentStats.mp} / {adventure.characterStats.mp}
+              </span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2.5">
               <div
                 className="bg-gradient-to-r from-blue-600 to-blue-500 h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${(adventure.currentStats.mp / adventure.characterStats.mp) * 100}%` }}
-              ></div>
+                style={{ width: `${(adventure.currentStats.mp / adventure.characterStats.mp) * 100}%` }}></div>
             </div>
           </div>
 
@@ -210,16 +202,19 @@ export function CharacterStats({
       </div>
 
       {isGlossaryOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setIsGlossaryOpen(false)}>
-          <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setIsGlossaryOpen(false)}>
+          <div
+            className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto m-4"
+            onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold text-purple-300">📖 Glossary</h3>
               <button
                 type="button"
                 onClick={() => setIsGlossaryOpen(false)}
-                className="text-gray-400 hover:text-gray-200 text-2xl"
-              >
-                ×
+                className="text-gray-400 hover:text-gray-200 text-2xl">
+                x
               </button>
             </div>
             <GlossaryPanel glossary={glossary} />

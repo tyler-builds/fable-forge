@@ -5,7 +5,7 @@ export default defineSchema({
   adventures: defineTable({
     userId: v.string(), // Links to Better Auth user table
     title: v.string(), // Auto-generated or user-defined
-    characterClass: v.union(v.literal("warrior"), v.literal("mage")),
+    characterClass: v.union(v.literal("warrior"), v.literal("mage"), v.literal("rogue")),
     characterStats: v.object({
       hp: v.number(),
       mp: v.number(),

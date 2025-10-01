@@ -4,6 +4,7 @@ import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { authComponent } from "./auth";
 import OpenAI from "openai";
+import { validatePointBuyStats, validateDerivedStats } from "./pointBuyValidation";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -160,7 +161,7 @@ export const getActiveEvent = query({
 export const createAdventureRecord = mutation({
   args: {
     title: v.string(),
-    characterClass: v.union(v.literal("warrior"), v.literal("mage")),
+    characterClass: v.union(v.literal("warrior"), v.literal("mage"), v.literal("rogue")),
     characterStats: v.object({
       hp: v.number(),
       mp: v.number(),
@@ -211,7 +212,7 @@ export const createAdventureRecord = mutation({
 
 export const createAdventure = action({
   args: {
-    playerClass: v.union(v.literal("warrior"), v.literal("mage")),
+    playerClass: v.union(v.literal("warrior"), v.literal("mage"), v.literal("rogue")),
     stats: v.object({
       hp: v.number(),
       mp: v.number(),
@@ -225,6 +226,29 @@ export const createAdventure = action({
     characterPortraitId: v.optional(v.id("characterPortraits")),
   },
   handler: async (ctx, args): Promise<Id<"adventures">> => {
+    // SECURITY: Validate point buy stats server-side to prevent cheating
+    try {
+      validatePointBuyStats({
+        str: args.stats.str,
+        dex: args.stats.dex,
+        con: args.stats.con,
+        int: args.stats.int,
+        wis: args.stats.wis,
+        cha: args.stats.cha,
+      });
+
+      validateDerivedStats(args.playerClass, {
+        hp: args.stats.hp,
+        mp: args.stats.mp,
+        con: args.stats.con,
+        int: args.stats.int,
+        dex: args.stats.dex,
+      });
+    } catch (error) {
+      console.error("Point buy validation failed:", error);
+      throw new Error(`Invalid character stats: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+
     // Generate both world description and title in a single OpenAI call
     const systemPrompt = `You are a Dungeon Master. Create a fantasy adventure for a ${args.playerClass} character.
 

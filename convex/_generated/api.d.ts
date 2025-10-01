@@ -15,6 +15,7 @@ import type * as backgrounds from "../backgrounds.js";
 import type * as characterPortraits from "../characterPortraits.js";
 import type * as dmSchema from "../dmSchema.js";
 import type * as http from "../http.js";
+import type * as pointBuyValidation from "../pointBuyValidation.js";
 import type * as sceneUtils from "../sceneUtils.js";
 import type * as startAdventure from "../startAdventure.js";
 
@@ -40,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   characterPortraits: typeof characterPortraits;
   dmSchema: typeof dmSchema;
   http: typeof http;
+  pointBuyValidation: typeof pointBuyValidation;
   sceneUtils: typeof sceneUtils;
   startAdventure: typeof startAdventure;
 }>;

@@ -1,3 +1,4 @@
+import { getClassIcon } from "@/utils/helpers";
 import type { Id } from "../../convex/_generated/dataModel";
 
 interface Adventure {
@@ -43,10 +44,6 @@ export function AdventureCard({ adventure, onContinueAdventure, onDeleteAdventur
     }
   };
 
-  const getClassIcon = (characterClass: string) => {
-    return characterClass === "warrior" ? "⚔️" : "🔮";
-  };
-
   return (
     <div className="bg-gradient-to-b from-gray-800 to-slate-900 rounded-xl shadow-lg border border-gray-600 p-6 hover:shadow-xl transition-shadow">
       <div className="flex justify-between items-start mb-4">
@@ -68,9 +65,7 @@ export function AdventureCard({ adventure, onContinueAdventure, onDeleteAdventur
       </div>
 
       <div className="mb-4">
-        <p className="text-sm text-gray-400 line-clamp-3">
-          {adventure.summary || adventure.worldDescription}
-        </p>
+        <p className="text-sm text-gray-400 line-clamp-3">{adventure.summary || adventure.worldDescription}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
@@ -92,8 +87,7 @@ export function AdventureCard({ adventure, onContinueAdventure, onDeleteAdventur
             adventure.status === "active"
               ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white"
               : "bg-gray-700 hover:bg-gray-600 text-gray-300"
-          }`}
-        >
+          }`}>
           {adventure.status === "active" ? "Continue" : "Resume"}
         </button>
 
@@ -101,8 +95,7 @@ export function AdventureCard({ adventure, onContinueAdventure, onDeleteAdventur
           type="button"
           onClick={() => onDeleteAdventure(adventure._id)}
           className="px-3 py-2 rounded-lg bg-red-800 hover:bg-red-700 text-red-300 transition-colors"
-          title="Delete adventure"
-        >
+          title="Delete adventure">
           Delete
         </button>
       </div>
