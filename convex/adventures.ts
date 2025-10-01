@@ -129,9 +129,9 @@ export const getActiveEvent = query({
       .collect();
 
     // Look for the most recent event action that has eventOptions
-    const activeEventAction = actions.find(action => 
-      action.type === "event" && 
-      action.eventOptions && 
+    const activeEventAction = actions.find(action =>
+      action.type === "event" &&
+      action.eventOptions &&
       action.eventOptions.length > 0
     );
 
@@ -141,7 +141,7 @@ export const getActiveEvent = query({
 
     // Check if this event has been resolved by looking for a subsequent action
     // If there's any action after this event, consider it resolved
-    const laterActions = actions.filter(action => 
+    const laterActions = actions.filter(action =>
       action.timestamp > activeEventAction.timestamp
     );
 
@@ -235,7 +235,7 @@ Generate a JSON response with:
 Be creative and make the world compelling for a ${args.playerClass}.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5-mini",
       reasoning_effort: "minimal",
       response_format: {
         type: "json_schema",

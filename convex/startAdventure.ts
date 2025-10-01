@@ -54,7 +54,7 @@ export const takeTurn = action({
     let rollContext = "";
     if (rollCheck.requiresRoll) {
       const statToRoll = rollCheck.statToRoll;
-      const rollDC = rollCheck.rollDC || 15;
+      const rollDC = rollCheck.rollDC || 12;
       const statValue = Math.max(1, Math.min(30, adventureData.currentStats[statToRoll as keyof typeof adventureData.currentStats] || 10));
       const modifier = Math.floor((statValue - 10) / 2);
       const d20 = Math.floor(Math.random() * 20) + 1;
@@ -77,7 +77,9 @@ export const takeTurn = action({
     const shouldTriggerEvent = shouldTriggerWorldEvent(actions, adventureData.turnCount);
 
     // Generate AI response using streamlined prompt and JSON schema
-    const systemPrompt = `You are a Dungeon Master. Generate the outcome of the player's action. Be creative, engaging, and include potential consequences or new opportunities. Keep responses concise but vivid (2-3 sentences max).${shouldTriggerEvent ? ' Include a proactive world event to make the story feel alive.' : ''} Always include a brief scene description (2-4 words) of the current location/environment.`;
+    const systemPrompt = `You are a Dungeon Master. Generate the outcome of the player's action. Be creative, engaging, and include potential consequences or new opportunities. Keep responses concise but vivid (2-3 sentences max).${shouldTriggerEvent ? ' Include a proactive world event to make the story feel alive.' : ''}
+
+IMPORTANT: The "outcome" field should ONLY contain the narrative result of the player's action. Do NOT include scene descriptions in the outcome text. Use the separate "sceneDescription" field (2-4 words) to describe the current location/environment (e.g., "dark forest", "tavern interior", "mountain peak").`;
 
     const userPrompt = `Player Character: ${adventureData.characterClass} with stats ${JSON.stringify(adventureData.currentStats)}
 
@@ -93,7 +95,7 @@ Player Action: ${params.userPrompt}${rollContext}
 Generate the outcome of this action considering the player's stats, class abilities, and available inventory.`;
     console.time("generateTakeTurnResponse");
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5-mini",
       response_format: {
         type: "json_schema",
         json_schema: getDndDmSchema(shouldTriggerEvent)
@@ -172,19 +174,14 @@ Generate the outcome of this action considering the player's stats, class abilit
 
     // Handle scene changes for dynamic backgrounds
     if (parsed.sceneDescription) {
-      try {
-        // Scene change detection for dynamic backgrounds
-        await ctx.runAction(api.backgrounds.handleSceneChange, {
-          adventureId: params.adventureId,
-          sceneDescription: parsed.sceneDescription
-        });
-        console.log("Scene change processed:", parsed.sceneDescription);
-      } catch (error) {
-        console.error("Failed to handle scene change:", error);
-        // Don't fail the entire turn if background generation fails
-      }
+      // Schedule background generation asynchronously so it doesn't block the UI
+      ctx.scheduler.runAfter(0, api.backgrounds.handleSceneChange, {
+        adventureId: params.adventureId,
+        sceneDescription: parsed.sceneDescription
+      });
+      console.log("Scene change scheduled:", parsed.sceneDescription);
     }
-    
+
     console.timeEnd("takeTurn");
     // Return minimal response - frontend will get updates via convex queries
     return {
@@ -216,7 +213,15 @@ async function getRollResultIfNeeded(playerAction: string, mostRecentResult: str
       {
         role: "system",
         content:
-          "You are a fast D&D rules assistant. Decide if the player's action requires a d20 roll. If yes, choose stat and DC."
+          `You are a fast D&D rules assistant. Decide if the player's action requires a d20 roll. If yes, choose stat and DC.
+
+DC Guidelines (5e standard):
+- Easy/Routine tasks: 10-12 (talking, simple climbing, basic search)
+- Medium difficulty: 13-15 (acrobatics, persuading, dodging)
+- Hard/Challenging: 16-20 (complex magic, difficult feats)
+- Very Hard: 21+ (nearly impossible tasks)
+
+Use lower DCs (10-12) for most common actions. Only use 15+ for genuinely difficult tasks.`
       },
       {
         role: "user",
