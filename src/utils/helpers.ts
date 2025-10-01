@@ -1,3 +1,5 @@
+import type { Stats } from "./pointBuy";
+
 export const statNames: Array<{ key: keyof Stats; label: string; description: string }> = [
   { key: "str", label: "STR", description: "Strength - Physical power" },
   { key: "dex", label: "DEX", description: "Dexterity - Agility & reflexes" },

@@ -36,7 +36,6 @@ export function AdventureDashboard({
     return adventure.status === filter;
   });
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
       <div className="max-w-6xl mx-auto">
@@ -55,9 +54,7 @@ export function AdventureDashboard({
                 key={status}
                 onClick={() => setFilter(status)}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  filter === status
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  filter === status ? "bg-blue-600 text-white shadow-lg" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                 }`}>
                 {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
                 {status !== "all" && (

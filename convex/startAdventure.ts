@@ -8,8 +8,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-
-
 export const takeTurn = action({
   args: {
     adventureId: v.id("adventures"),

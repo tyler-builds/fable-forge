@@ -12,7 +12,7 @@ const openai = new OpenAI({
 
 export const getUserAdventures = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any[]> => {
     const user = await authComponent.getAuthUser(ctx);
 
     if (!user) {
@@ -255,6 +255,7 @@ export const createAdventure = action({
 Generate a JSON response with:
 1. "worldDescription": A rich but concise fantasy world setting and starting location (2-3 sentences)
 2. "title": A short, exciting adventure title (2-4 words, epic and fantasy-themed)
+3. "sceneDescription": 2-4 words describing the current location/environment (e.g., "dark forest", "tavern interior", "mountain peak").
 
 Be creative and make the world compelling for a ${args.playerClass}.`;
 
@@ -269,9 +270,10 @@ Be creative and make the world compelling for a ${args.playerClass}.`;
             type: "object",
             properties: {
               worldDescription: { type: "string" },
-              title: { type: "string" }
+              title: { type: "string" },
+              sceneDescription: { type: "string" }
             },
-            required: ["worldDescription", "title"]
+            required: ["worldDescription", "title", "sceneDescription"]
           }
         }
       },
@@ -283,7 +285,7 @@ Be creative and make the world compelling for a ${args.playerClass}.`;
       throw new Error("No response from AI");
     }
 
-    let parsed: { title?: string; worldDescription?: string };
+    let parsed: { title: string; worldDescription: string, sceneDescription: string };
     try {
       parsed = JSON.parse(response);
     } catch (error) {
@@ -300,14 +302,17 @@ Be creative and make the world compelling for a ${args.playerClass}.`;
       throw new Error("Not authenticated");
     }
 
-    const now = Date.now();
-
     const adventureId = await ctx.runMutation(api.adventures.createAdventureRecord, {
       title,
       characterClass: args.playerClass,
       characterStats: args.stats,
       worldDescription,
       characterPortraitId: args.characterPortraitId,
+    });
+
+    await ctx.runAction(api.backgrounds.handleSceneChange, {
+      adventureId: adventureId,
+      sceneDescription: parsed.sceneDescription
     });
 
     return adventureId;
